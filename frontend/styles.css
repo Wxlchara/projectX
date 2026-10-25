@@ -40,7 +40,7 @@ dialog{border:0;padding:0;color:var(--ink)}dialog::backdrop{background:rgba(15,3
 .country-type,.country-description,.small-muted,.attached-row{overflow-wrap:anywhere}
 .badge{max-width:100%;white-space:normal;text-align:center}
 .attached-document .attached-row{min-width:0}
-@media(max-width:900px){
+@media(max-width:1120px){
   .site-header{height:64px}
   .nav-inner{gap:12px}
   .main-nav{position:absolute;top:64px;left:0;right:0;display:none;flex-direction:column;align-items:stretch;gap:0;margin-left:0;padding:12px 24px;background:#fff;border-top:1px solid var(--line);box-shadow:0 15px 22px rgba(20,45,75,.09);z-index:20}
@@ -75,4 +75,54 @@ dialog{border:0;padding:0;color:var(--ink)}dialog::backdrop{background:rgba(15,3
   .workspace-side .side-label,.workspace-side .side-help{display:none}
   .side-link{white-space:nowrap;padding:10px}
   .workspace-columns,.case-overview-grid{grid-template-columns:1fr}
+}
+
+/* Screen review: fluid canvas and tighter vertical rhythm. */
+.container{width:min(calc(100% - clamp(32px,5vw,96px)),1680px)}
+.site-header{height:64px}
+.nav-inner{gap:24px}
+.main-nav{gap:22px}
+.hero{padding:46px 0 54px}
+.hero-layout{margin-bottom:34px}
+.hero-copy{max-width:960px}
+.hero h1{font-size:clamp(38px,4.2vw,68px)}
+.hero-description{font-size:16px}
+.home-destinations{padding:40px 0 34px}
+.how-section{padding:40px 0 58px}
+.workspace-bg{min-height:0;padding:34px 0 58px}
+.workspace-layout{display:block}
+.workspace-main{max-width:1440px;margin-inline:auto}
+.page-surface{min-height:0;padding:42px 0 58px}
+.auth-page{min-height:0;padding:52px 0 68px}
+.country-card h3{font-size:20px}
+.country-type,.country-description,.country-details{font-size:14px}
+.form-field{font-size:14px}
+.form-field input,.form-field select,.form-field textarea{font-size:15px}
+.comparison-picker{padding:20px 24px;margin-bottom:18px;max-width:520px}
+.comparison-picker .form-field{margin:0}
+@media(max-width:1120px){.main-nav{gap:0}}
+@media(max-width:760px){
+  .container{width:min(100% - 40px,680px)}
+  .hero{padding:34px 0 42px}
+  .hero-layout{margin-bottom:26px}
+  .home-destinations{padding:32px 0 28px}
+  .how-section{padding:32px 0 46px}
+  .workspace-bg,.page-surface{padding:26px 0 46px}
+  .workspace-main{max-width:100%}
+  .comparison-picker{max-width:100%;padding:18px}
+}
+@media(max-width:390px){.container{width:calc(100% - 32px)}}
+.country-card h3{font-size:clamp(20px,1.25vw,23px)}
+.country-type,.country-description,.country-details,.comparison-row p,.small-muted{font-size:15px}
+.inline-notice{font-size:14px;margin-bottom:16px}
+.badge{font-size:12px}
+.eyebrow{font-size:13px}
+.step-card h3{font-size:18px}
+.step-card p{font-size:14px}
+@media(max-width:760px){
+  .country-card h3{font-size:18px}
+  .country-type,.country-description,.country-details,.small-muted{font-size:14px}
+  .step-card h3{font-size:16px}
+  .step-card p{font-size:13px}
+  .inline-notice{font-size:13px}
 }

@@ -56,6 +56,7 @@ async function visit(hash, text) {
 
 assert.ok(app.innerHTML.includes('Шенген: Любой'), 'search should be on the home screen');
 assert.ok(app.innerHTML.includes('country-icon'), 'country card icons should be present');
+assert.ok(!app.innerHTML.includes('АКТИВНОЕ ДЕЛО'), 'home should not duplicate a single case');
 assert.equal((app.innerHTML.match(/class="country-card"/g) || []).length, 6, 'home should show a short country preview');
 assert.ok(app.innerHTML.includes('Все результаты'), 'home preview should link to the full directory');
 assertBalancedMarkup(app.innerHTML, '#/');
@@ -69,7 +70,26 @@ filters['schengen-filter'].value = 'all';
 callbacks.get('change')({ target: { id: 'schengen-filter' } });
 await visit('#/destinations/FR_TOURISM', 'Франция');
 await visit('#/compare', 'Сравнение');
+const OriginalFormData = globalThis.FormData;
+globalThis.FormData = class {
+  constructor(form) { this.fields = form.fields; }
+  *[Symbol.iterator]() { yield* Object.entries(this.fields); }
+};
+const compareButton = { disabled: false };
+const compareForm = {
+  dataset: { form: 'compare' },
+  fields: { starts_on:'2027-06-10', ends_on:'2027-06-20', departure_city:'Москва', application_country:'RU' },
+  querySelector() { return compareButton; }
+};
+await callbacks.get('submit')({ target: { closest() { return compareForm; } }, preventDefault() {} });
+globalThis.FormData = OriginalFormData;
+assert.ok(app.innerHTML.includes('id="comparison-country"'), 'comparison should offer a country dropdown');
+assert.equal((app.innerHTML.match(/class="comparison-row surface-card"/g) || []).length, 0, 'comparison should not list all countries');
+callbacks.get('change')({ target: { id:'comparison-country', value:'FR_TOURISM' } });
+assert.equal((app.innerHTML.match(/class="comparison-row surface-card"/g) || []).length, 1, 'only selected country should appear');
 await visit('#/profile', 'Профиль');
+assert.ok(!app.innerHTML.includes('name="citizenship"'), 'fixed Russian citizenship should not be a form field');
+assert.ok(!app.innerHTML.includes('class="workspace-side"'), 'workspace should not duplicate the header menu');
 await visit('#/cases', 'Мои дела');
 await visit('#/cases/new?scenario=JP_TOURISM', 'Новое дело');
 await visit('#/cases/demo-france', 'Готовность пакета');
