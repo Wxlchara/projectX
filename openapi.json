@@ -867,6 +867,11 @@
             "title": "Known Required Documents",
             "type": "integer"
           },
+          "profile_revision": {
+            "minimum": 1.0,
+            "title": "Profile Revision",
+            "type": "integer"
+          },
           "required_documents": {
             "anyOf": [
               {
@@ -900,6 +905,7 @@
         },
         "required": [
           "destination",
+          "profile_revision",
           "applicability",
           "external_actions",
           "route_notes",
@@ -2901,7 +2907,7 @@
     }
   },
   "info": {
-    "description": "Локальное демо на вымышленных документах. Работают health, аккаунты/сессии и реестр 12 направлений (пакеты 1/11/2); остальные маршруты документируют контракт и отвечают 503 после входа до реализации. Frontend использует один origin и credentials=include.",
+    "description": "Локальное демо на вымышленных документах. Работают health, аккаунты/сессии, реестр 12 направлений и профиль/сравнения (пакеты 1/11/2/3); остальные маршруты документируют контракт и отвечают 503 после входа до реализации. Frontend использует один origin и credentials=include.",
     "title": "VisaPilot API",
     "version": "0.1.0"
   },
@@ -5868,7 +5874,7 @@
     },
     "/api/v1/comparisons": {
       "post": {
-        "description": "Контракт пакета 3. Реализация отсутствует: сейчас возвращает 503 module_not_ready. Указанный успешный ответ — целевой интерфейс.",
+        "description": "Применить проверенные правила 12 направлений к текущему профилю и поездке. Это не проверка документов и не вероятность визы.",
         "operationId": "compare_api_v1_comparisons_post",
         "parameters": [
           {
@@ -6009,7 +6015,7 @@
         "tags": [
           "profile"
         ],
-        "x-implementation": "pending",
+        "x-implementation": "implemented",
         "x-package": 3
       }
     },
@@ -7497,8 +7503,7 @@
     },
     "/api/v1/profile": {
       "get": {
-        "description": "Контракт пакета 3. Реализация отсутствует: сейчас возвращает 503 module_not_ready. Указанный успешный ответ — целевой интерфейс.",
-        "operationId": "profile_api_v1_profile_get",
+        "operationId": "get_profile_api_v1_profile_get",
         "responses": {
           "200": {
             "content": {
@@ -7606,16 +7611,16 @@
             "SessionCookie": []
           }
         ],
-        "summary": "Profile",
+        "summary": "Get Profile",
         "tags": [
           "profile"
         ],
-        "x-implementation": "pending",
+        "x-implementation": "implemented",
         "x-package": 3
       },
       "put": {
-        "description": "Контракт пакета 3. Реализация отсутствует: сейчас возвращает 503 module_not_ready. Указанный успешный ответ — целевой интерфейс.",
-        "operationId": "update_profile_api_v1_profile_put",
+        "description": "Полностью заменить поля профиля; пропуски становятся null. Изменение увеличивает revision и помечает зависимые результаты устаревшими.",
+        "operationId": "put_profile_api_v1_profile_put",
         "parameters": [
           {
             "in": "header",
@@ -7751,11 +7756,11 @@
             "SessionCookie": []
           }
         ],
-        "summary": "Update Profile",
+        "summary": "Put Profile",
         "tags": [
           "profile"
         ],
-        "x-implementation": "pending",
+        "x-implementation": "implemented",
         "x-package": 3
       }
     },

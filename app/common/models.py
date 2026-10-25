@@ -279,9 +279,22 @@ class Question(Model):
     title: str
     value_type: Literal["boolean", "integer", "date", "enum", "stays"]
     choices: list[str] = PydanticField(default_factory=list)
-    minimum: int | None = None
-    maximum: int | None = None
+    minimum: Annotated[int, PydanticField(strict=True)] | None = None
+    maximum: Annotated[int, PydanticField(strict=True)] | None = None
     source_ids: list[str]
+
+    @model_validator(mode="after")
+    def valid_constraints(self):
+        if self.value_type == "enum":
+            if not self.choices or len(self.choices) != len(set(self.choices)):
+                raise ValueError("Enum questions require unique choices")
+        elif self.choices:
+            raise ValueError("Only enum questions have choices")
+        if self.value_type != "integer" and (self.minimum is not None or self.maximum is not None):
+            raise ValueError("Only integer questions have bounds")
+        if self.minimum is not None and self.maximum is not None and self.minimum > self.maximum:
+            raise ValueError("Question bounds are reversed")
+        return self
 
 
 class AppliedRequirement(Requirement):
@@ -336,6 +349,7 @@ class ComparisonInput(Model):
 
 class DestinationComparison(Model):
     destination: Destination
+    profile_revision: Revision
     applicability: ApplicabilityResult
     required_documents: int | None = None
     external_actions: list[str]

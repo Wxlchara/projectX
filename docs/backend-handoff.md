@@ -1,21 +1,24 @@
-# Общая основа: пакеты 1 и 11
+# Общая основа: пакеты 1, 11, 2 и 3
 
-Пакет 1 (`d3439ff`) уже объединён в main. Пакет 11 в ветке `matvey/11-auth`
-добавляет реальную авторизацию; передавать весь его коммит, включая изменения
-общих файлов/OpenAPI. Порядок подключения и примеры —
-[auth-handoff.md](auth-handoff.md). `.idea`, окружение, `.env`, базы и файлы
-архива не входят в коммиты.
+Пакеты 1 (`d3439ff`) и 11 (`b9f0de2`) уже объединены в main.
+Ветка `matvey/02-03-rules-profile` добавляет пакеты 2 и 3 двумя коммитами;
+передавать оба целиком, включая общие модели, composition root, данные и
+OpenAPI. Инструкции: [auth-handoff.md](auth-handoff.md),
+[rules-handoff.md](rules-handoff.md), [profile-handoff.md](profile-handoff.md).
+`.idea`, окружение, `.env`, базы и файлы архива не входят в коммиты.
 
 ## Фактическая готовность
 
 Работают `GET /api/v1/health`, `/docs`, `/openapi.json`, lifespan/init SQLite,
-короткие транзакции и единый формат ошибок, регистрация/login/me/logout.
-Auth-маршруты имеют `x-implementation: implemented`; остальные маршруты из
+короткие транзакции и единый формат ошибок, регистрация/login/me/logout,
+публичные destinations/scenarios, личные GET/PUT profile и POST comparisons.
+Их маршруты имеют `x-implementation: implemented`; остальные маршруты из
 `contracts.md` зарегистрированы с типизированными входами/ответами и меткой
 `pending`. После входа и CSRF они возвращают 503 до реализации своего пакета.
 Без сессии защищённый запрос получает 401, без CSRF на изменении — 403.
 Успешная схема pending-маршрута в Swagger описывает будущий ответ.
-Нет фиктивных правил, проверок, прогресса, OCR или AI-ответов.
+Сценарии содержат проверенные условия с частичным покрытием и явными
+неизвестными. Проверки документов, прогресс, OCR и AI здесь не реализованы.
 
 Окружение первого запуска: CPython 3.12.15; все фактически установленные
 версии, включая тестовые и транзитивные зависимости, — в `requirements.lock`.
@@ -49,9 +52,12 @@ Auth-маршруты имеют `x-implementation: implemented`; остальн
 
 Перечисления: DocumentType, ExtractionState, Severity, EntryMode,
 DataQuality, Applicability, ChecklistKind, ChecklistState, Outcome, EventType.
-У правила kind/parameters пока только структура: ограниченный реестр и
-семантическую проверку реализует пакет 2. У answers ключи проверяет схема
-сценария, а не общий JSON-контейнер.
+У правила kind/parameters ограниченный реестр и семантическую проверку
+реализует пакет 2. У answers ключи проверяет схема сценария, а не общий
+JSON-контейнер; сравнение принимает объединение questions активных сценариев.
+Добавлены Question, AppliedRequirement, статус применимости blocked,
+сведения о проверке источников и полноте. DestinationComparison содержит
+profile_revision; неизвестное полное число документов остаётся null.
 
 `InputSignature.facts_revisions` — отображение document_id → facts_revision;
 также обязательны case_revision, profile_revision, ruleset_version,
@@ -80,7 +86,14 @@ app = create_app(
 Роутер модуля содержит пути `/documents`, `/cases/{case_id}/checks` и т. п.
 без `/api/v1`; префикс добавляет composition root. Роутер целиком заменяет
 контрактный роутер соответствующего пакета; дубликаты путей не подключать.
-Непереданные пакеты остаются явно недоступными.
+Пакеты 11/2/3 подключены по умолчанию; остальные без роутера недоступны.
+
+Готовые порты: `app.state.rule_registry` и `app.state.applicability_evaluator`.
+Последний оценивает только заявленные профиль/поездку, не подтверждает
+документы. `app.state.profile_service.get(owner)` возвращает текущую ревизию.
+PUT профиля атомарно сбрасывает проекции собственных дел и помечает связанные
+checks/routes/letters stale. Пакет 4 должен пересчитать перед показом
+готовности; старые input_signature и ручные тексты сохраняются.
 
 Для защищённых операций модуль использует `Depends(require_user)` и
 `Depends(require_csrf)` из `app.common.dependencies`; это мост к пакету 11.
@@ -198,6 +211,7 @@ python -m pytest -q
 python -m pip check
 python -m app.common.export_openapi --check
 python tests/auth_http_smoke.py
+python tests/rules_profile_http_smoke.py
 python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 1
 curl http://127.0.0.1:8000/api/v1/health
 curl -i http://127.0.0.1:8000/api/v1/destinations
@@ -210,7 +224,11 @@ curl -i http://127.0.0.1:8000/api/v1/destinations
 Проверки auth включают реальные пароли, сессии/CSRF, logout, ownership и
 отдельный smoke с перезапуском Uvicorn. Изоляция скачивания/привязки проверена
 с тестовыми HTTP-адаптерами; настоящий стык 11+4/5 повторяется после появления
-их роутеров. Предметные сценарии пакетов 2–9 пока не реализованы.
+их роутеров. Для 2/3 проверены все 12 сценариев, повреждённые определения,
+версии/истечение срока источников, условные требования, null/false,
+календарные сроки/история поездок, изоляция профилей и инвалидация снимков.
+Отдельный реальный HTTP smoke проверяет профиль/сравнение и перезапуск.
+Предметные маршруты пакетов 4–9 пока не реализованы.
 
 В выбранных версиях Starlette сообщает deprecation для TestClient с httpx;
 pytest работает, предупреждение не скрыто. httpx сохранён по инженерной

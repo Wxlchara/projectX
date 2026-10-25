@@ -106,8 +106,11 @@ class FileRuleRegistry:
             self._catalogs[version] = catalog
             self._rulesets[version] = Ruleset(version=version, rules=rules, sources=list(sources.values()))
 
-    def get_scenario(self, scenario_id: str, *, as_of: date | None = None):
-        definition = self._catalogs[self.active_version].get(scenario_id)
+    def get_scenario(self, scenario_id: str, *, version: str | None = None, as_of: date | None = None):
+        catalog = self._catalogs.get(version if version is not None else self.active_version)
+        if catalog is None:
+            raise AppError(404, "ruleset_not_found", "Версия правил не найдена.")
+        definition = catalog.get(scenario_id)
         if definition is None:
             raise AppError(404, "scenario_not_found", "Сценарий не найден.")
         return effective_scenario(definition.scenario, as_of)
@@ -121,8 +124,11 @@ class FileRuleRegistry:
             source.status = source_quality(source, as_of)
         return result
 
-    def get_sources(self, source_ids: list[str]) -> list[Source]:
-        sources = {source.id: source for source in self._rulesets[self.active_version].sources}
+    def get_sources(self, source_ids: list[str], *, version: str | None = None) -> list[Source]:
+        ruleset = self._rulesets.get(version if version is not None else self.active_version)
+        if ruleset is None:
+            raise AppError(404, "ruleset_not_found", "Версия правил не найдена.")
+        sources = {source.id: source for source in ruleset.sources}
         if not set(source_ids) <= sources.keys():
             raise AppError(404, "source_not_found", "Источник не найден.")
         result = []

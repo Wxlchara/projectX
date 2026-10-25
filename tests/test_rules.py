@@ -121,3 +121,36 @@ def test_path_traversal_and_duplicate_json_keys_are_rejected(tmp_path):
     manifest.write_text('{"schema_version":1,"schema_version":1,"active_version":"v1","versions":["v1"]}')
     with pytest.raises(ValueError, match="Duplicate JSON"):
         FileRuleRegistry(root)
+
+
+def test_retained_version_keeps_its_scenario_rules_and_sources(tmp_path):
+    root = tmp_path / "catalog"
+    shutil.copytree(files("data.rules.destinations"), root)
+    old_version, new_version = "2026-10-25.1", "fixture-next"
+    shutil.copytree(root / old_version, root / new_version)
+    (root / "manifest.json").write_text(json.dumps({
+        "schema_version": 1, "active_version": new_version, "versions": [old_version, new_version],
+    }))
+    for path in (root / new_version).glob("*.json"):
+        content = json.loads(path.read_text())
+        if path.name == "manifest.json":
+            content["version"] = new_version
+        else:
+            content["scenario"]["version"] = new_version
+            for rule in content["rules"]:
+                rule["version"] = new_version
+            if path.name == "FR.json":
+                content["scenario"]["requirements"][0]["title"] = "SAMPLE next version"
+                content["scenario"]["sources"][0]["locator"] = "SAMPLE next locator"
+        path.write_text(json.dumps(content))
+    registry = FileRuleRegistry(root)
+    old = registry.get_scenario("FR_TOURISM", version=old_version, as_of=CHECKED_ON)
+    active = registry.get_scenario("FR_TOURISM", as_of=CHECKED_ON)
+    assert old.version == old_version and active.version == new_version
+    assert old.requirements[0].title != active.requirements[0].title
+    assert registry.get_ruleset(old_version).rules[0].version == old_version
+    assert registry.get_sources(["FR_ARRIVAL"], version=old_version)[0].locator != registry.get_sources(["FR_ARRIVAL"])[0].locator
+    with pytest.raises(AppError):
+        registry.get_scenario("FR_TOURISM", version="absent")
+    with pytest.raises(AppError):
+        registry.get_sources(["FR_ARRIVAL"], version="absent")

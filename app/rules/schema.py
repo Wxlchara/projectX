@@ -1,5 +1,6 @@
 """Validate rule parameters and field paths before any data reaches services."""
 
+from datetime import date
 from typing import Annotated, Literal
 
 from pydantic import Field, StrictBool, model_validator
@@ -43,6 +44,31 @@ def validate_condition(condition: Condition | None, questions: dict[str, Questio
         raise ValueError("exists requires value=true; missing values stay unknown")
     if condition.op not in ("in", "exists") and condition.value is None:
         raise ValueError("A comparison with null cannot prove a condition")
+    if condition.op == "exists":
+        return
+    field = condition.field
+    if field.startswith("answers."):
+        value_type = questions[field.split(".", 1)[1]].value_type
+    elif field in {"profile.has_other_citizenship", "profile.has_foreign_residence_permit"}:
+        value_type = "boolean"
+    elif field in {"profile.birth_date", "profile.passport_issued_on", "profile.passport_expires_on", "trip.starts_on", "trip.ends_on"}:
+        value_type = "date"
+    elif field == "profile.existing_permissions":
+        raise ValueError("Permission lists support exists only")
+    else:
+        value_type = "enum"
+    if value_type == "stays" or (condition.op in ("gte", "lte") and value_type not in ("integer", "date")):
+        raise ValueError("Operator incompatible with field type")
+    for value in condition.value if condition.op == "in" else [condition.value]:
+        expected_type = {"boolean": bool, "integer": int, "date": str, "enum": str}[value_type]
+        if type(value) is not expected_type:
+            raise ValueError("Condition constant has wrong type")
+        if value_type == "date":
+            if len(value) != 10:
+                raise ValueError("Expected ISO date")
+            date.fromisoformat(value)
+        if field.startswith("answers.") and value_type == "enum" and value not in questions[field.split(".", 1)[1]].choices:
+            raise ValueError("Unknown enum constant")
 
 
 class RequirementParameters(Model):
@@ -67,6 +93,7 @@ class PassportValidityParameters(Model):
 class PassportMaxAgeParameters(Model):
     anchor: Literal["trip.starts_on", "answers.application_date"]
     years: Annotated[int, Field(strict=True, ge=1, le=20)]
+    allow_anniversary: StrictBool = True
 
 
 class StayLimitParameters(Model):

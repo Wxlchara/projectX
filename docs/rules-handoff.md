@@ -57,7 +57,9 @@ sources = registry.get_sources(["FR_RU", "FR_FAQ"])
 ```
 
 Возвращаются независимые Pydantic-снимки. get_ruleset(version) поддерживает
-версии, перечисленные в manifest; get_scenario и get_sources читают активную.
+версии, перечисленные в manifest; get_scenario и get_sources читают активную
+или конкретную сохранённую через `version="..."`. Для старого снимка дела
+все три чтения должны использовать одну ruleset_version.
 Неизвестная версия/сценарий/источник — 404. Для воспроизводимых проверок у
 get_scenario/get_ruleset есть необязательный keyword `as_of=date(...)`.
 Новая версия добавляется рядом с прежней, затем переключается active_version
@@ -75,7 +77,7 @@ get_scenario/get_ruleset есть необязательный keyword `as_of=da
 | requirement | Наличие требования; параметры пустые |
 | assertion | condition, expected, message, next_action, severity |
 | passport_validity | anchor, календарные months и/или days, severity |
-| passport_max_age | anchor и календарные years |
+| passport_max_age | anchor, календарные years, allow_anniversary (по умолчанию true) |
 | stay_limit | days, window_days, history_question, history_mode |
 | insurance_coverage | territory, minimum_cover или null, covers_trip |
 | minimum_funds | minimum или null, period; calculation=manual |
@@ -83,7 +85,9 @@ get_scenario/get_ruleset есть необязательный keyword `as_of=da
 
 Пакет 3 оценивает заявленные профиль/поездку. Пакет 6 применяет применимые
 правила к подтверждённым документным фактам и проверяет страховку/деньги.
-Параметр manual не разрешает придумывать курс, прозацию месяца или порог.
+Параметр manual не разрешает придумывать курс, округление месяца или порог.
+У Франции точная десятая годовщина выдачи уже выходит за «моложе 10 лет»;
+в определении явно записано allow_anniversary=false.
 Для новой разновидности правила сначала расширить валидатор у Матвея,
 затем данные/проверки у владельца модуля; молча пропускать kind нельзя.
 
@@ -97,5 +101,5 @@ get_scenario/get_ruleset есть необязательный keyword `as_of=da
 Общие модели дополнены Question, AppliedRequirement, сведениями о проверке
 источников и полноте. Состояние `blocked` предусмотрено для известного
 формального барьера; типы занятости/финансирования/проживания перечислены
-в OpenAPI. Результат пакета 3 будет передавать применимость каждого требования,
+в OpenAPI. Результат пакета 3 передаёт применимость каждого требования,
 известное число документов отдельно от неизвестного полного числа.

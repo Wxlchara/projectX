@@ -278,7 +278,8 @@
       "requirement_id": "FR.passport",
       "parameters": {
         "anchor": "trip.starts_on",
-        "years": 10
+        "years": 10,
+        "allow_anniversary": false
       },
       "mandatory": true,
       "source_ids": [
