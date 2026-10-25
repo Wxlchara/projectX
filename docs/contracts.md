@@ -98,3 +98,25 @@ GET /destinations, GET /scenarios/{id}, GET /health доступны без вх
 - Пакет 9: project_process(events, process_template) → этапы/исход; не подменяет результаты проверок пакета 6.
 
 Пакеты 4/6/9 могут разрабатываться параллельно по этим интерфейсам: сначала структуры и тестовые ответы, затем реальные вызовы. Пустая реализация не должна возвращать успешный статус готовности.
+
+## Конкретизация пакета 1
+
+Общие Pydantic-модели: `app/common/models.py`, протоколы:
+`app/common/interfaces.py`. Внутренний owner-контекст — UserContext(user_id),
+передаваемый явно при пересчёте/извлечении личных данных. InputSignature
+содержит `facts_revisions: {document_id: facts_revision}`, case_revision,
+profile_revision, ruleset_version, algorithm_version; дополнительные версии
+маршрута/шаблона/модели предусмотрены отдельными nullable-полями.
+Правка полей документа передаёт expected_facts_revision и список
+`{key, value, user_confirmed}`; сервер назначает новую ревизию/происхождение.
+Коллекции — Items[T]. Создание аккаунта/дела/документа/письма/события — 201;
+logout и все DELETE — 204 без тела.
+
+В каркасе работает только health. Остальные маршруты имеют
+`x-implementation: pending` и возвращают `503 module_not_ready`; защищённые
+маршруты недоступны до пакета 11. Схемы успешных ответов фиксируют целевой
+контракт, а не наличие предметной реализации. Проверки Origin, cookie,
+CSRF, ownership на HTTP-границе выполняются следующими пакетами.
+Снимок контракта — корневой `openapi.json`; регенерация:
+`python -m app.common.export_openapi`. Интеграция и примеры:
+[backend-handoff.md](backend-handoff.md).
