@@ -1,0 +1,76 @@
+{
+  "id": "70a2841b-f11b-4e6b-a267-856dc83a9e5a",
+  "case_id": "4b89e1b2-fca0-4ba9-ad8b-c9d1a8838e87",
+  "evaluated_at": "2026-10-25T20:00:00Z",
+  "input_signature": {
+    "case_revision": 2,
+    "profile_revision": 1,
+    "facts_revisions": {
+      "24a8ed5b-68bd-4d5c-a29f-68d8da53c63a": 2,
+      "76bdec00-5672-4ee6-a0cc-512e9b631615": 1,
+      "04538692-ad5a-47ff-9bb9-7404ecf8d2de": 1
+    },
+    "ruleset_version": "2026-10-25.1",
+    "algorithm_version": "documents-1",
+    "route_revision": null,
+    "template_version": null,
+    "model": null
+  },
+  "findings": [
+    {
+      "code": "statement_recency_manual",
+      "severity": "info",
+      "message": "Предельный возраст выписки не задан проверенным правилом; свежесть требует отдельной сверки.",
+      "next_action": "Сверьте данные с оригиналом, уточните условие и повторите проверку.",
+      "document_ids": [
+        "76bdec00-5672-4ee6-a0cc-512e9b631615"
+      ],
+      "field_paths": [
+        "fields.statement_on"
+      ],
+      "rule_ref": null,
+      "source_refs": [],
+      "origin": "technical",
+      "resolved": false
+    },
+    {
+      "code": "policy_scope_limited",
+      "severity": "info",
+      "message": "Исключения договора, подлинность и действительность полиса у страховщика не проверены.",
+      "next_action": "Сверьте данные с оригиналом, уточните условие и повторите проверку.",
+      "document_ids": [
+        "04538692-ad5a-47ff-9bb9-7404ecf8d2de"
+      ],
+      "field_paths": [],
+      "rule_ref": null,
+      "source_refs": [],
+      "origin": "technical",
+      "resolved": false
+    },
+    {
+      "code": "coverage_gap",
+      "severity": "verify",
+      "message": "Неполный индивидуальный список: сверить мастер France-Visas, округ и доступность записи.",
+      "next_action": "Уточните условие или проверьте соответствующий официальный источник.",
+      "document_ids": [],
+      "field_paths": [],
+      "rule_ref": null,
+      "source_refs": [],
+      "origin": "technical",
+      "resolved": false
+    },
+    {
+      "code": "coverage_gap",
+      "severity": "verify",
+      "message": "Сценарий относится к европейской Франции; иные территории, маршрут и существующие разрешения проверяются отдельно.",
+      "next_action": "Уточните условие или проверьте соответствующий официальный источник.",
+      "document_ids": [],
+      "field_paths": [],
+      "rule_ref": null,
+      "source_refs": [],
+      "origin": "technical",
+      "resolved": false
+    }
+  ],
+  "stale": false
+}
