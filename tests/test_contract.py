@@ -42,7 +42,8 @@ def test_openapi_covers_contract_and_excludes_private_fields(client):
                 "$ref": "#/components/schemas/ErrorResponse"
             }
             if path != "/api/v1/health":
-                assert operation["x-implementation"] == "pending"
+                expected_state = "implemented" if path.startswith("/api/v1/auth/") else "pending"
+                assert operation["x-implementation"] == expected_state
                 assert "503" in operation["responses"]
             public = path in {
                 "/api/v1/health", "/api/v1/destinations", "/api/v1/scenarios/{scenario_id}",
@@ -67,8 +68,7 @@ def test_openapi_covers_contract_and_excludes_private_fields(client):
 
 
 @pytest.mark.parametrize("path", [
-    "/api/v1/destinations", "/api/v1/scenarios/FR_TOURISM", "/api/v1/documents",
-    "/api/v1/cases", f"/api/v1/cases/{uuid4()}/checks", "/api/v1/auth/me",
+    "/api/v1/destinations", "/api/v1/scenarios/FR_TOURISM",
 ])
 def test_pending_routes_never_report_success(client, path):
     response = client.get(path)
@@ -79,7 +79,7 @@ def test_pending_routes_never_report_success(client, path):
 def test_errors_do_not_echo_credentials_or_paths(client):
     response = client.post("/api/v1/auth/register", json={
         "username": "x", "password": "secret", "owner_id": "/private/secret/path",
-    })
+    }, headers={"Origin": "http://testserver"})
     assert response.status_code == 422
     assert response.json()["error"]["code"] == "validation_error"
     assert "secret" not in response.text

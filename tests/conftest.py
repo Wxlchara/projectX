@@ -7,7 +7,9 @@ from app.main import create_app
 
 @pytest.fixture
 def settings(tmp_path):
-    return Settings(_env_file=None, data_dir=tmp_path / "data")
+    return Settings(
+        _env_file=None, data_dir=tmp_path / "data", allowed_origins=["http://testserver"]
+    )
 
 
 @pytest.fixture
