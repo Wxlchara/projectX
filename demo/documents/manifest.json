@@ -1,0 +1,81 @@
+{
+  "synthetic": true,
+  "reference_trip": {
+    "starts_on": "2026-12-01",
+    "ends_on": "2026-12-10"
+  },
+  "sets": {
+    "good": {
+      "passport": {
+        "Given name": "ALEXEI",
+        "Surname": "SAMPLEOV",
+        "Date of birth": "1996-03-14",
+        "Passport kind": "biometric",
+        "Date of issue": "2022-04-15",
+        "Date of expiry": "2032-04-15"
+      },
+      "bank_statement": {
+        "Holder name": "ALEXEI SAMPLEOV",
+        "Statement date": "2026-11-20",
+        "Balance": "3000.00",
+        "Currency": "EUR"
+      },
+      "insurance": {
+        "Holder name": "ALEXEI SAMPLEOV",
+        "Valid from": "2026-12-01",
+        "Valid until": "2027-01-31",
+        "Territory": "Schengen",
+        "Coverage amount": "50000.00",
+        "Currency": "EUR"
+      }
+    },
+    "bad": {
+      "passport": {
+        "Given name": "ALEXEI",
+        "Surname": "SAMPLEOV",
+        "Date of birth": "1996-03-14",
+        "Passport kind": "biometric",
+        "Date of issue": "2022-04-15",
+        "Date of expiry": "2025-04-15"
+      },
+      "bank_statement": {
+        "Holder name": "OTHER PERSON",
+        "Statement date": "2024-01-01",
+        "Balance": "100.00",
+        "Currency": "XYZ"
+      },
+      "insurance": {
+        "Holder name": "ALEXEI SAMPLEOV",
+        "Valid from": "2026-01-01",
+        "Valid until": "2026-01-31",
+        "Territory": "Brazil",
+        "Coverage amount": "100.00",
+        "Currency": "USD"
+      }
+    },
+    "corrected": {
+      "passport": {
+        "Given name": "ALEXEI",
+        "Surname": "SAMPLEOV",
+        "Date of birth": "1996-03-14",
+        "Passport kind": "biometric",
+        "Date of issue": "2022-04-15",
+        "Date of expiry": "2033-04-15"
+      },
+      "bank_statement": {
+        "Holder name": "ALEXEI SAMPLEOV",
+        "Statement date": "2026-11-20",
+        "Balance": "4000.00",
+        "Currency": "EUR"
+      },
+      "insurance": {
+        "Holder name": "ALEXEI SAMPLEOV",
+        "Valid from": "2026-12-01",
+        "Valid until": "2027-02-28",
+        "Territory": "Schengen",
+        "Coverage amount": "50000.00",
+        "Currency": "EUR"
+      }
+    }
+  }
+}

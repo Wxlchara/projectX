@@ -1,0 +1,17 @@
+{
+  "version": "2026-10-25.1",
+  "countries": [
+    "FR.json",
+    "ES.json",
+    "JP.json",
+    "IN.json",
+    "EG.json",
+    "ZA.json",
+    "US.json",
+    "CA.json",
+    "BR.json",
+    "AR.json",
+    "AU.json",
+    "NZ.json"
+  ]
+}

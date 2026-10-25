@@ -98,3 +98,113 @@ GET /destinations, GET /scenarios/{id}, GET /health доступны без вх
 - Пакет 9: project_process(events, process_template) → этапы/исход; не подменяет результаты проверок пакета 6.
 
 Пакеты 4/6/9 могут разрабатываться параллельно по этим интерфейсам: сначала структуры и тестовые ответы, затем реальные вызовы. Пустая реализация не должна возвращать успешный статус готовности.
+
+## Конкретизация пакета 1
+
+Общие Pydantic-модели: `app/common/models.py`, протоколы:
+`app/common/interfaces.py`. Внутренний owner-контекст — UserContext(user_id),
+передаваемый явно при пересчёте/извлечении личных данных. InputSignature
+содержит `facts_revisions: {document_id: facts_revision}`, case_revision,
+profile_revision, ruleset_version, algorithm_version; дополнительные версии
+маршрута/шаблона/модели предусмотрены отдельными nullable-полями.
+Правка полей документа передаёт expected_facts_revision и список
+`{key, value, user_confirmed}`; сервер назначает новую ревизию/происхождение.
+Коллекции — Items[T]. Создание аккаунта/дела/документа/письма/события — 201;
+logout и все DELETE — 204 без тела.
+
+После пакета 11 работают health и все четыре `/auth/*`. У auth-маршрутов
+`x-implementation: implemented`; остальные имеют `pending`. Без сессии
+защищённые маршруты возвращают 401; без CSRF на изменении — 403; после
+прохождения авторизации ещё не реализованный пакет возвращает
+`503 module_not_ready`. Его успешная схема фиксирует целевой контракт.
+Снимок контракта — корневой `openapi.json`; регенерация:
+`python -m app.common.export_openapi`. Интеграция и примеры:
+[backend-handoff.md](backend-handoff.md).
+
+## Конкретизация пакета 11
+
+Username: 3–64 ASCII-символа, первый — буква/цифра, остальные — буквы,
+цифры, `_`, `.`, `-`; регистр не различается, сервер возвращает нижний регистр.
+Пароль — 8–128 символов, не нормализуется и не возвращается. Регистрация
+создаёт аккаунт и пустой профиль с неизвестными ответами, не выполняет вход.
+Дубликат username — 409 username_taken. Неверный пароль/неизвестный username
+дают одинаковую ошибку 401 invalid_credentials.
+
+Регистрация и login требуют разрешённый заголовок Origin; отсутствие,
+`null`, чужой origin или повтор заголовка — 403 origin_not_allowed.
+Список задаёт VISAPILOT_ALLOWED_ORIGINS, без wildcard. Схема, host и порт
+сравниваются с учётом стандартных портов HTTP(S); Host/X-Forwarded-* не
+заменяют разрешённый список. Для dev proxy указать origin браузерного
+frontend, для LAN — origin ноутбука с портом.
+
+Cookie visapilot_session: host-only, Path=/api/v1, HttpOnly, SameSite=Lax,
+Max-Age=43200; Secure зависит от конфигурации HTTPS. Каждый успешный login
+создаёт новый случайный токен и отзывает предъявленную старую сессию;
+регистрация и неуспешный вход не переключают текущего пользователя.
+В SQLite хранится SHA-256 bearer-токена, срок и отметка отзыва. CSRF связан
+с сессией и восстанавливается на /me без нового server secret; в БД — его
+хеш. Auth-ответы с данными имеют Cache-Control: no-store.
+
+require_csrf сначала проверяет сессию (401), затем X-CSRF-Token (403).
+Переданный Origin дополнительно сверяется; для CLI-запроса с валидным CSRF
+он необязателен. Logout требует CSRF, отзывает сессию, удаляет cookie с тем
+же Path и возвращает 204. Просроченную/отозванную cookie повторно использовать
+нельзя; срок 12 часов абсолютный, /me его не продлевает.
+
+Зависимости доступны из app.auth.dependencies и прежнего
+app.common.dependencies. Они автоматически добавляют cookie-security в
+OpenAPI и возвращают UserContext(user_id). require_owned и
+require_owned_case_document проверяют владельца внутри соединения/транзакции;
+чужой и отсутствующий ресурс дают одинаковые 404. HTTP-модули 3–9 должны
+использовать эти проверки до чтения/изменения/скачивания.
+Примеры и границы интеграционной проверки: [auth-handoff.md](auth-handoff.md).
+
+## Конкретизация пакета 2
+
+GET /destinations и GET /scenarios/{scenario_id} реализованы для 12 направлений.
+Source дополнен attempted_at, locator, evidence и notes. source_checked требует
+фактических checked_at, review_after и evidence; неудачная попытка не становится
+датой юридической проверки. Просроченный источник и зависимый от него режим
+въезда читаются как needs_verification. Scenario дополнен entry_source_ids,
+questions, coverage и unverified_conditions. Все текущие сценарии partial.
+
+Question описывает только определённый ключ answers, его тип/ограничения и
+источники. AppliedRequirement расширяет Requirement применимостью,
+explanation и rule_refs для пакета 3. Занятость: employed/self_employed/student/
+retired/unemployed/other; финансирование: self/sponsor/mixed/other; размещение:
+hotel/host/rental/other, каждый ответ также допускает null.
+Реестр/параметры проверок, источники и порядок обновления:
+[rules-handoff.md](rules-handoff.md). Официальная полнота не подтверждается
+одним наличием карточки страны или работающим endpoint.
+
+## Конкретизация пакета 3
+
+GET /profile возвращает профиль с id/revision. PUT /profile принимает только
+ProfileInput и полностью заменяет поля; отсутствующее становится null.
+Повтор идентичного ввода сохраняет revision, изменение увеличивает её.
+В одной транзакции собственные cases получают stale/profile_changed и
+projection_json=NULL, связанные check_results/routes/letters — stale=1.
+Старые подписи, подтверждения с их подписями, документы, события и правки
+писем сохраняются до явного пересчёта/сопоставления с новой ревизией.
+
+POST /comparisons использует текущий профиль из сессии и возвращает
+Items[DestinationComparison] для всех 12 направлений, без сортировки по
+«лёгкости». Добавлено обязательное profile_revision. known_required_documents
+считает известные применимые обязательные документы; required_documents
+остаётся null при неполном/неизвестном списке, requirements_complete=false.
+external_actions, route_notes и unknown_conditions — отдельные факторы.
+Профиль и сравнения имеют Cache-Control: no-store; PUT/POST требуют CSRF.
+
+ApplicabilityResult.status: applicable/blocked/needs_input/unsupported_profile/
+needs_verification. Неподдерживаемая или неизвестная базовая область не
+получает персональный список требований. Состав требований определяется
+правилами, не AI. Неизвестное обязательное условие не становится pass;
+источник без подтверждения не доказывает барьер. Заявленная применимость
+не заменяет проверку документных фактов и готовность дела.
+
+answers принимает только типизированные questions выбранного сценария;
+в /comparisons — объединение questions активного каталога. Неизвестный ключ
+или неверный тип даёт 422 invalid_answers. Детали, JSON-примеры, дополнительные
+вопросы и порт evaluate_applicability: [profile-handoff.md](profile-handoff.md).
+Внутренние get_scenario/get_sources допускают keyword version для чтения
+сохранённой версии вместе с get_ruleset(version).

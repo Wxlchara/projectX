@@ -1,0 +1,182 @@
+{
+  "name": "Австралия",
+  "scenario": {
+    "id": "AU_TOURISM",
+    "destination_country": "AU",
+    "version": "2026-10-25.1",
+    "entry_mode": "visa",
+    "supported_profile": {
+      "citizenship": "RU",
+      "residence_country": "RU",
+      "minimum_age": 18,
+      "purpose": "tourism",
+      "passport": "ordinary",
+      "travellers": 1,
+      "visa_application": "new; existing permissions require manual assessment"
+    },
+    "requirements": [
+      {
+        "id": "AU.passport",
+        "title": "Действительный загранпаспорт",
+        "kind": "document",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": "passport",
+        "applies_if": null,
+        "source_ids": [
+          "AU_600"
+        ]
+      },
+      {
+        "id": "AU.funds",
+        "title": "Сверить подтверждение средств и временного визита",
+        "kind": "preparation_action",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": null,
+        "applies_if": null,
+        "source_ids": [
+          "AU_600"
+        ]
+      },
+      {
+        "id": "AU.application",
+        "title": "Сверить и выполнить официальный порядок подачи",
+        "kind": "process_action",
+        "mandatory": true,
+        "readiness_contributing": false,
+        "document_type": null,
+        "applies_if": null,
+        "source_ids": [
+          "AU_600"
+        ]
+      }
+    ],
+    "process_stages": [
+      {
+        "id": "AU.form",
+        "title": "Подготовить официальную анкету",
+        "event_types": [
+          "form_prepared"
+        ],
+        "source_ids": [
+          "AU_600"
+        ]
+      },
+      {
+        "id": "AU.submission",
+        "title": "Подать официальное заявление",
+        "event_types": [
+          "submitted"
+        ],
+        "source_ids": [
+          "AU_600"
+        ]
+      },
+      {
+        "id": "AU.decision",
+        "title": "Получить решение с известным исходом",
+        "event_types": [
+          "decision_received"
+        ],
+        "source_ids": [
+          "AU_600"
+        ]
+      }
+    ],
+    "sources": [
+      {
+        "id": "AU_600",
+        "url": "https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/visitor-600/tourist-stream-overseas",
+        "authority": "Department of Home Affairs, Australia",
+        "locator": "Visitor 600, tourist stream overseas",
+        "checked_at": null,
+        "review_after": null,
+        "status": "needs_verification",
+        "attempted_at": "2026-10-25T13:03:59Z",
+        "evidence": null,
+        "notes": "Открыт только JS-каркас, браузер для полного отображения недоступен. Поисковое содержимое не выдано за проверенные условия subclass 600."
+      },
+      {
+        "id": "AU_ENTRY",
+        "url": "https://immi.homeaffairs.gov.au/entering-and-leaving-australia/entering-australia/can-i-go-to-australia",
+        "authority": "Department of Home Affairs, Australia",
+        "locator": "Can I go to Australia?",
+        "checked_at": "2026-10-25T13:03:59Z",
+        "review_after": "2026-11-01",
+        "status": "source_checked",
+        "attempted_at": "2026-10-25T13:03:59Z",
+        "evidence": "Владельцам паспортов, кроме Австралии/Новой Зеландии, нужна подходящая виза до поездки.",
+        "notes": null
+      }
+    ],
+    "data_quality": "needs_verification",
+    "entry_source_ids": [
+      "AU_ENTRY"
+    ],
+    "questions": [],
+    "coverage": "partial",
+    "unverified_conditions": [
+      "Конкретный поток Visitor 600 и его документы не подтверждены: страница отдаёт JS-каркас; условия не переносятся из поискового текста.",
+      "Место нахождения при подаче/решении, средства, переводы, биометрия и условия страховки требуют сверки Home Affairs."
+    ]
+  },
+  "rules": [
+    {
+      "id": "AU.passport.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "AU_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "AU.passport",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "AU_600"
+      ]
+    },
+    {
+      "id": "AU.passport.validity",
+      "version": "2026-10-25.1",
+      "scenario_id": "AU_TOURISM",
+      "kind": "passport_validity",
+      "applies_if": null,
+      "requirement_id": "AU.passport",
+      "parameters": {
+        "anchor": "trip.starts_on",
+        "months": 0,
+        "days": 0
+      },
+      "mandatory": true,
+      "source_ids": [
+        "AU_600"
+      ]
+    },
+    {
+      "id": "AU.funds.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "AU_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "AU.funds",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "AU_600"
+      ]
+    },
+    {
+      "id": "AU.application.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "AU_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "AU.application",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "AU_600"
+      ]
+    }
+  ]
+}

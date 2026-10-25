@@ -1,0 +1,475 @@
+{
+  "name": "Франция",
+  "scenario": {
+    "id": "FR_TOURISM",
+    "destination_country": "FR",
+    "version": "2026-10-25.1",
+    "entry_mode": "visa",
+    "supported_profile": {
+      "citizenship": "RU",
+      "residence_country": "RU",
+      "minimum_age": 18,
+      "purpose": "tourism",
+      "passport": "ordinary",
+      "travellers": 1,
+      "visa_application": "new; existing permissions require manual assessment"
+    },
+    "requirements": [
+      {
+        "id": "FR.passport",
+        "title": "Действительный загранпаспорт",
+        "kind": "document",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": "passport",
+        "applies_if": null,
+        "source_ids": [
+          "FR_ARRIVAL"
+        ]
+      },
+      {
+        "id": "FR.funds",
+        "title": "Подтвердить средства и возможность возвращения",
+        "kind": "preparation_action",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": null,
+        "applies_if": null,
+        "source_ids": [
+          "FR_FAQ"
+        ]
+      },
+      {
+        "id": "FR.bank",
+        "title": "Выписка как один из вариантов финансового подтверждения",
+        "kind": "document",
+        "mandatory": false,
+        "readiness_contributing": false,
+        "document_type": "bank_statement",
+        "applies_if": {
+          "field": "trip.funding_type",
+          "op": "in",
+          "value": [
+            "self",
+            "mixed"
+          ]
+        },
+        "source_ids": [
+          "FR_FAQ"
+        ]
+      },
+      {
+        "id": "FR.insurance",
+        "title": "Медицинская страховка на поездку",
+        "kind": "document",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": "insurance",
+        "applies_if": null,
+        "source_ids": [
+          "FR_FAQ"
+        ]
+      },
+      {
+        "id": "FR.accommodation",
+        "title": "Подтвердить размещение на весь срок",
+        "kind": "preparation_action",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": null,
+        "applies_if": null,
+        "source_ids": [
+          "FR_ARRIVAL"
+        ]
+      },
+      {
+        "id": "FR.host_certificate",
+        "title": "Подготовить заверенное принимающей мэрией подтверждение",
+        "kind": "preparation_action",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": null,
+        "applies_if": {
+          "field": "trip.accommodation_type",
+          "op": "eq",
+          "value": "host"
+        },
+        "source_ids": [
+          "FR_FAQ"
+        ]
+      },
+      {
+        "id": "FR.form",
+        "title": "Заполнить анкету France-Visas и подготовить фото",
+        "kind": "preparation_action",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": null,
+        "applies_if": null,
+        "source_ids": [
+          "FR_FAQ"
+        ]
+      },
+      {
+        "id": "FR.appointment",
+        "title": "Записаться в визовый центр в РФ",
+        "kind": "process_action",
+        "mandatory": true,
+        "readiness_contributing": false,
+        "document_type": null,
+        "applies_if": null,
+        "source_ids": [
+          "FR_RU"
+        ]
+      }
+    ],
+    "process_stages": [
+      {
+        "id": "FR.form",
+        "title": "Подготовить официальную анкету",
+        "event_types": [
+          "form_prepared"
+        ],
+        "source_ids": [
+          "FR_RU",
+          "FR_FAQ"
+        ]
+      },
+      {
+        "id": "FR.appointment",
+        "title": "Записаться на подачу",
+        "event_types": [
+          "appointment_booked"
+        ],
+        "source_ids": [
+          "FR_RU",
+          "FR_FAQ"
+        ]
+      },
+      {
+        "id": "FR.submission",
+        "title": "Подать официальное заявление",
+        "event_types": [
+          "submitted"
+        ],
+        "source_ids": [
+          "FR_RU",
+          "FR_FAQ"
+        ]
+      },
+      {
+        "id": "FR.decision",
+        "title": "Получить решение с известным исходом",
+        "event_types": [
+          "decision_received"
+        ],
+        "source_ids": [
+          "FR_RU",
+          "FR_FAQ"
+        ]
+      },
+      {
+        "id": "FR.passport_return",
+        "title": "Получить паспорт независимо от исхода",
+        "event_types": [
+          "passport_returned"
+        ],
+        "source_ids": [
+          "FR_RU",
+          "FR_FAQ"
+        ]
+      }
+    ],
+    "sources": [
+      {
+        "id": "FR_ARRIVAL",
+        "url": "https://www.france-visas.gouv.fr/en/votre-arrivee-en-france",
+        "authority": "France-Visas",
+        "locator": "Documents to be presented on arrival",
+        "checked_at": "2026-10-25T13:03:59Z",
+        "review_after": "2026-11-01",
+        "status": "source_checked",
+        "attempted_at": "2026-10-25T13:03:59Z",
+        "evidence": "Паспорт моложе 10 лет, запас 3 месяца после выезда; жильё, средства и возвращение подтверждаются отдельно.",
+        "notes": null
+      },
+      {
+        "id": "FR_FAQ",
+        "url": "https://www.france-visas.gouv.fr/en/faq",
+        "authority": "France-Visas",
+        "locator": "Insurance; hosting; travel days",
+        "checked_at": "2026-10-25T13:03:59Z",
+        "review_after": "2026-11-01",
+        "status": "source_checked",
+        "attempted_at": "2026-10-25T13:03:59Z",
+        "evidence": "Страховка на Шенген и весь срок, минимум 30000 EUR; частный принимающий оформляет подтверждение. Предел 90/180.",
+        "notes": null
+      },
+      {
+        "id": "FR_RU",
+        "url": "https://france-visas.gouv.fr/ru/russie",
+        "authority": "France-Visas",
+        "locator": "Россия: подать заявку",
+        "checked_at": "2026-10-25T13:03:59Z",
+        "review_after": "2026-11-01",
+        "status": "source_checked",
+        "attempted_at": "2026-10-25T13:03:59Z",
+        "evidence": "Взрослым не признаются небиометрические паспорта РФ; документы в РФ принимаются по записи.",
+        "notes": null
+      }
+    ],
+    "data_quality": "needs_verification",
+    "entry_source_ids": [
+      "FR_RU"
+    ],
+    "questions": [
+      {
+        "key": "schengen_prior_stays",
+        "title": "Предыдущие пребывания: даты въезда и выезда; [] означает, что их не было",
+        "value_type": "stays",
+        "source_ids": [
+          "FR_FAQ"
+        ]
+      }
+    ],
+    "coverage": "partial",
+    "unverified_conditions": [
+      "Неполный индивидуальный список: сверить мастер France-Visas, округ и доступность записи.",
+      "Сценарий относится к европейской Франции; иные территории, маршрут и существующие разрешения проверяются отдельно."
+    ]
+  },
+  "rules": [
+    {
+      "id": "FR.passport.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "FR_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "FR.passport",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "FR_ARRIVAL"
+      ]
+    },
+    {
+      "id": "FR.passport.validity",
+      "version": "2026-10-25.1",
+      "scenario_id": "FR_TOURISM",
+      "kind": "passport_validity",
+      "applies_if": null,
+      "requirement_id": "FR.passport",
+      "parameters": {
+        "anchor": "trip.ends_on",
+        "months": 3,
+        "days": 0
+      },
+      "mandatory": true,
+      "source_ids": [
+        "FR_ARRIVAL"
+      ]
+    },
+    {
+      "id": "FR.passport.age",
+      "version": "2026-10-25.1",
+      "scenario_id": "FR_TOURISM",
+      "kind": "passport_max_age",
+      "applies_if": null,
+      "requirement_id": "FR.passport",
+      "parameters": {
+        "anchor": "trip.starts_on",
+        "years": 10,
+        "allow_anniversary": false
+      },
+      "mandatory": true,
+      "source_ids": [
+        "FR_ARRIVAL"
+      ]
+    },
+    {
+      "id": "FR.passport.biometric",
+      "version": "2026-10-25.1",
+      "scenario_id": "FR_TOURISM",
+      "kind": "assertion",
+      "applies_if": null,
+      "requirement_id": null,
+      "parameters": {
+        "condition": {
+          "field": "profile.passport_kind",
+          "op": "eq",
+          "value": "biometric"
+        },
+        "expected": true,
+        "message": "Взрослый заявитель с небиометрическим паспортом РФ не покрыт признанием Франции.",
+        "next_action": "Используйте признаваемый биометрический паспорт.",
+        "severity": "blocking"
+      },
+      "mandatory": true,
+      "source_ids": [
+        "FR_RU"
+      ]
+    },
+    {
+      "id": "FR.funds.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "FR_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "FR.funds",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "FR_FAQ"
+      ]
+    },
+    {
+      "id": "FR.bank.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "FR_TOURISM",
+      "kind": "requirement",
+      "applies_if": {
+        "field": "trip.funding_type",
+        "op": "in",
+        "value": [
+          "self",
+          "mixed"
+        ]
+      },
+      "requirement_id": "FR.bank",
+      "parameters": {},
+      "mandatory": false,
+      "source_ids": [
+        "FR_FAQ"
+      ]
+    },
+    {
+      "id": "FR.insurance.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "FR_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "FR.insurance",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "FR_FAQ"
+      ]
+    },
+    {
+      "id": "FR.insurance.coverage",
+      "version": "2026-10-25.1",
+      "scenario_id": "FR_TOURISM",
+      "kind": "insurance_coverage",
+      "applies_if": null,
+      "requirement_id": "FR.insurance",
+      "parameters": {
+        "territory": "SCHENGEN",
+        "minimum_cover": {
+          "amount": "30000",
+          "currency": "EUR"
+        }
+      },
+      "mandatory": true,
+      "source_ids": [
+        "FR_FAQ"
+      ]
+    },
+    {
+      "id": "FR.accommodation.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "FR_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "FR.accommodation",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "FR_ARRIVAL"
+      ]
+    },
+    {
+      "id": "FR.host_certificate.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "FR_TOURISM",
+      "kind": "requirement",
+      "applies_if": {
+        "field": "trip.accommodation_type",
+        "op": "eq",
+        "value": "host"
+      },
+      "requirement_id": "FR.host_certificate",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "FR_FAQ"
+      ]
+    },
+    {
+      "id": "FR.form.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "FR_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "FR.form",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "FR_FAQ"
+      ]
+    },
+    {
+      "id": "FR.appointment.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "FR_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "FR.appointment",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "FR_RU"
+      ]
+    },
+    {
+      "id": "FR.submission.place",
+      "version": "2026-10-25.1",
+      "scenario_id": "FR_TOURISM",
+      "kind": "assertion",
+      "applies_if": null,
+      "requirement_id": null,
+      "parameters": {
+        "condition": {
+          "field": "trip.application_country",
+          "op": "eq",
+          "value": "RU"
+        },
+        "expected": true,
+        "message": "Подача вне РФ не проверена этим сценарием.",
+        "next_action": "Сверьте право подачи с выбранным консульством.",
+        "severity": "verify"
+      },
+      "mandatory": true,
+      "source_ids": [
+        "FR_RU"
+      ]
+    },
+    {
+      "id": "FR.stay",
+      "version": "2026-10-25.1",
+      "scenario_id": "FR_TOURISM",
+      "kind": "stay_limit",
+      "applies_if": null,
+      "requirement_id": null,
+      "parameters": {
+        "days": 90,
+        "window_days": 180,
+        "history_question": "schengen_prior_stays",
+        "history_mode": "rolling"
+      },
+      "mandatory": true,
+      "source_ids": [
+        "FR_FAQ"
+      ]
+    }
+  ]
+}
