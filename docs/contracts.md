@@ -1,0 +1,100 @@
+# VisaPilot — контракт backend и frontend
+
+Статус: согласованный продуктовый объём, инженерная спецификация для реализации. Источник истины о HTTP после пакета 1 — генерируемый openapi.json, соответствующий этому документу. Изменения общих схем координирует владелец пакета 1.
+
+## Общие соглашения
+
+Префикс /api/v1. JSON snake_case, UUID-строки, даты YYYY-MM-DD, время ISO 8601 с часовым поясом, денежные суммы строкой и ISO-валюта. Неизвестное значение — null, а не false/0/пустая строка. Успешные ответы — объект ресурса; коллекции {"items": [...]}. Удаление — 204.
+
+Ошибка: {"error":{"code":"...","message":"...","details":{}}}. Основные статусы: 401 вход отсутствует/истёк; 403 CSRF; 404 ресурс не найден или чужой; 409 конфликт/занято; 413 файл велик; 415 тип не поддержан; 422 некорректные поля; 503 AI недоступен, если нет содержательного локального результата. Не возвращать трассировку, токены и локальные пути.
+
+Cookie-сессия, credentials=include. GET /auth/me возвращает user и csrf_token; авторизованные POST/PATCH/PUT/DELETE передают X-CSRF-Token. Регистрация/вход проверяют Origin и не используют старую сессию для смены пользователя. Сервер сам назначает владельца. В разработке /api проксируется на backend; на демо сайт и API открываются по одному адресу ноутбука.
+
+## Маршруты и владельцы пакетов
+
+| Пакет | Метод и путь после /api/v1 | Смысл |
+|---|---|---|
+| 1 | GET /health | Готовность приложения и признак demo_mode |
+| 11 | POST /auth/register | username/password → user; затем обычный вход |
+| 11 | POST /auth/login | username/password → user, csrf_token, Set-Cookie |
+| 11 | GET /auth/me | Текущий пользователь и CSRF для frontend |
+| 11 | POST /auth/logout | Отзыв сессии, очистка cookie |
+| 2 | GET /destinations | 12 направлений, версии и качество источников |
+| 2 | GET /scenarios/{scenario_id} | Публичная схема сценария, требования, источники, этапы |
+| 3 | GET /profile | Профиль текущего аккаунта |
+| 3 | PUT /profile | Изменить профиль, увеличить revision |
+| 3 | POST /comparisons | trip + ответы → результаты по 12 странам; профиль из сессии |
+| 4 | POST /cases | scenario_id + trip + answers → новое дело |
+| 4 | GET /cases | Только дела текущего аккаунта |
+| 4 | GET /cases/{case_id} | Дело, checklist, readiness, process, stale/revision |
+| 4 | PATCH /cases/{case_id} | Изменить поездку/ответы; смена сценария — новое дело |
+| 4 | DELETE /cases/{case_id} | Удалить дело, сохранить общий архив |
+| 4 | PUT /cases/{case_id}/documents/{document_id} | Прикрепить свой документ; идемпотентно |
+| 4 | DELETE /cases/{case_id}/documents/{document_id} | Отвязать, не удалять архив |
+| 4 | PATCH /cases/{case_id}/checklist/{item_id} | Отметить разрешённое ручное действие/подтверждение |
+| 5 | POST /documents | multipart file + document_type → запись личного архива |
+| 5 | GET /documents | Только личный архив |
+| 5 | GET /documents/{document_id} | Метаданные, extraction_state, fields и revisions |
+| 5 | GET /documents/{document_id}/file | Авторизованное скачивание файла |
+| 5 | POST /documents/{document_id}/extract | OCR/извлечение → fields и замечания качества |
+| 5 | PATCH /documents/{document_id}/fields | Правка и подтверждение полей, facts_revision |
+| 5 | DELETE /documents/{document_id} | Удалить файл/поля, отвязать от дел, инвалидировать результаты |
+| 6 | POST /cases/{case_id}/checks | Выполнить актуальные проверки прикреплённых полей |
+| 6 | GET /cases/{case_id}/checks | Последний результат, revisions и stale |
+| 7 | PUT /cases/{case_id}/route | Сохранить участки и параметры пересадок |
+| 7 | POST /cases/{case_id}/route/check | Проверить покрытые правила, вернуть неизвестные условия |
+| 8 | POST /cases/{case_id}/letters | type=cover_letter → черновик/шаблон и недостающие факты |
+| 8 | GET /cases/{case_id}/letters | Сохранённые черновики своего дела |
+| 8 | PATCH /letters/{letter_id} | Пользователь редактирует текст |
+| 8 | GET /letters/{letter_id}/file | Скачать .txt через проверку владельца |
+| 9 | POST /cases/{case_id}/events | Добавить ручное событие, проверить допустимость исхода |
+| 9 | GET /cases/{case_id}/events | Хронология и источник каждого события |
+| 9 | GET /cases/{case_id}/notifications | Внутренние уведомления и следующие действия |
+
+GET /destinations, GET /scenarios/{id}, GET /health доступны без входа. Все остальные маршруты требуют сессию. OpenAPI — /openapi.json, интерактивная документация — /docs. Эти адреса не являются frontend-страницами продукта.
+
+## Общие модели
+
+**User:** id, username, created_at. Без password_hash/session_hash.
+
+**ApplicantProfile:** id, revision, given_name, surname, birth_date, citizenship, residence_country, has_other_citizenship, has_foreign_residence_permit, passport_kind, passport_issued_on, passport_expires_on, employment_status, existing_permissions. Даты/ответы могут быть null до заполнения. Указание другого гражданства/ВНЖ возвращает границу поддержки, а не молчаливую подмену.
+
+**TripInput:** purpose, destination_country, starts_on, ends_on, departure_city, application_country, accommodation_type, funding_type. Детали и допвопросы — answers с ключами, определёнными схемой сценария. Не принимать произвольные исполняемые правила от клиента.
+
+**Scenario:** id (например FR_TOURISM), destination_country, version, entry_mode (visa/evisa/visa_free/needs_verification), supported_profile, requirements, process_stages, sources, data_quality. entry_mode заполняется после проверки источника; неизвестное не выдаётся за установленный факт.
+
+**Rule:** id, version, kind, applies_if, requirement_id, parameters, mandatory, source_ids. Подробный набор параметров задаётся ограниченным реестром Python-проверок в пакете 2.
+
+**Case:** id, scenario_id, owner определяется сервером, trip, answers, revision, profile_revision, ruleset_version, attached_document_ids, checklist, readiness, process, created_at, updated_at.
+
+**Document:** id, document_type (passport/bank_statement/insurance), original_filename, mime_type, size_bytes, sha256, extraction_state (uploaded/extracted/needs_input/failed), facts_revision, fields, quality_findings, created_at. Файловый путь и полный сырой OCR-текст не выдаются в списке архива.
+
+**Field:** key, value, confidence (число или null), source_page, source_kind (pdf_text/ocr/manual), user_confirmed, confirmed_revision. PDF-текст не получает выдуманную OCR-уверенность 100%.
+
+**ChecklistItem:** id, requirement_id, kind, mandatory, applicability (yes/no/unknown), readiness_contributing, state, document_ids, verification_method, findings, explanation, source_refs, next_action.
+
+**Finding:** code, severity, message, next_action, document_ids, field_paths, rule_ref (id/version либо null), origin (rule/heuristic/technical), resolved. Для heuristic обязателен явный признак эвристики.
+
+**Readiness:** percent (int/null), required_total, satisfied_required, ready, unknown_required_conditions, blocking_count, reasons. **Process:** percent (int/null), stages, current_stage, outcome; вычисляется отдельно.
+
+**CheckResult:** id, case_id, evaluated_at, input_signature, findings, stale. Подпись включает case_revision, profile_revision, facts_revision всех документов, ruleset_version и версию алгоритма.
+
+**Route:** legs и transfers. Transfer содержит country, airport, arrival_at, departure_at, ticket_type, leaves_airside, rechecks_baggage, permissions. Результат: status (no_known_blockers/blocked/needs_verification), findings, covered_countries, uncovered_countries, flight_availability=not_checked. no_known_blockers не называется гарантией допустимости перелёта.
+
+**Letter:** id, case_id, type, language=en, content, missing_facts, generation_mode (ai/template), from_cache, input_signature, stale, edited_by_user, created_at. Новая генерация не перезаписывает молча пользовательский текст.
+
+**Event:** id, case_id, event_type, occurred_at, received_at, source=manual, note, outcome (при применимости). Типы: form_prepared, appointment_booked, submitted, under_review, additional_documents_requested, decision_received, passport_returned, entry_preparation_completed. Шаблон определяет применимые типы/этапы.
+
+## Внутренние интерфейсы между пакетами
+
+- Пакет 11: require_user(request) и require_csrf(request); возвращает user_id без передачи credentials другим модулям.
+- Пакет 2: get_scenario(id), get_ruleset(version), get_sources(ids); возвращает проверенные Pydantic-модели и качество данных.
+- Пакет 3: evaluate_applicability(profile, trip, answers, scenario) → применимость, требования, барьеры, недостающие ответы.
+- Пакет 4: rebuild_case(case_id, reason) → чек-лист и прогрессы; проверяет ownership на HTTP-границе и использует внутренний owner-контекст.
+- Пакет 5: get_confirmed_facts(owner_id, document_ids), extract_document(id), AIProvider.generate(task, facts, output_schema) → структурированный результат или явная недоступность.
+- Пакет 6: check_case(snapshot) → CheckResult; не изменяет правила и исходные документы.
+- Пакет 7: check_route(profile, route, ruleset) → результат с неизвестными условиями.
+- Пакет 8: generate_cover_letter(confirmed_snapshot) → черновик и список недостающих фактов.
+- Пакет 9: project_process(events, process_template) → этапы/исход; не подменяет результаты проверок пакета 6.
+
+Пакеты 4/6/9 могут разрабатываться параллельно по этим интерфейсам: сначала структуры и тестовые ответы, затем реальные вызовы. Пустая реализация не должна возвращать успешный статус готовности.
