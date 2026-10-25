@@ -1,8 +1,8 @@
-"""Fail-closed auth bridge; package 11 supplies the actual AuthGateway."""
+"""Shared dependencies delegating to the package 11 AuthGateway."""
 
 from typing import Annotated
 
-from fastapi import Header, Request
+from fastapi import Header, Request, Security
 from fastapi.security import APIKeyCookie
 
 from app.common.db import Database
@@ -19,7 +19,10 @@ def get_database(request: Request) -> Database:
     return request.app.state.database
 
 
-async def require_user(request: Request) -> UserContext:
+async def require_user(
+    request: Request,
+    _session_cookie: Annotated[str | None, Security(session_cookie)] = None,
+) -> UserContext:
     gateway = request.app.state.auth_gateway
     if gateway is None:
         raise module_unavailable(11)
@@ -28,6 +31,7 @@ async def require_user(request: Request) -> UserContext:
 
 async def require_csrf(
     request: Request,
+    _session_cookie: Annotated[str | None, Security(session_cookie)] = None,
     x_csrf_token: Annotated[str | None, Header(alias="X-CSRF-Token")] = None,
 ) -> UserContext:
     gateway = request.app.state.auth_gateway

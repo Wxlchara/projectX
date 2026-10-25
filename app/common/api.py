@@ -3,11 +3,11 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, File, Form, Security, UploadFile
+from fastapi import APIRouter, Depends, File, Form, UploadFile
 from fastapi.responses import JSONResponse, Response
 
 from app.common import models as m
-from app.common.dependencies import require_csrf, require_user, session_cookie
+from app.common.dependencies import require_csrf, require_user
 from app.common.errors import ERROR_RESPONSES, module_unavailable
 
 PACKAGE_NAMES = {
@@ -23,7 +23,7 @@ def endpoint(package, method, path, response_model=None, *, status=200, public=F
     dependencies = []
     if not public:
         guard = require_user if method == "GET" else require_csrf
-        dependencies = [Security(session_cookie), Depends(guard)]
+        dependencies = [Depends(guard)]
     responses = dict(ERROR_RESPONSES)
     if media:
         responses[status] = {

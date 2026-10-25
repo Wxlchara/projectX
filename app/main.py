@@ -7,6 +7,8 @@ from fastapi import APIRouter, FastAPI, Request
 from fastapi.openapi.utils import get_openapi
 from starlette.concurrency import run_in_threadpool
 
+from app.auth.router import router as auth_router
+from app.auth.service import AuthService
 from app.common.api import PACKAGE_NAMES, PENDING_ROUTERS
 from app.common.concurrency import ProcessingGuards
 from app.common.config import Settings
@@ -29,6 +31,8 @@ def create_app(
     installed = dict(feature_routers or {})
     if set(installed) - PACKAGE_NAMES.keys():
         raise ValueError("Unknown feature package")
+    installed.setdefault(11, auth_router)
+    authentication = AuthService(database, config)
 
     @asynccontextmanager
     async def lifespan(application: FastAPI):
@@ -43,15 +47,16 @@ def create_app(
     application = FastAPI(
         title="VisaPilot API", version="0.1.0", lifespan=lifespan,
         description=(
-            "Локальное демо на вымышленных документах. Пакет 1: работает health; "
-            "остальные маршруты документируют контракт и отвечают 503 до реализации. "
+            "Локальное демо на вымышленных документах. Работают health и аккаунты/сессии (пакеты 1/11); "
+            "остальные маршруты документируют контракт и отвечают 503 после входа до реализации. "
             "Frontend использует один origin и credentials=include."
         ),
         responses=ERROR_RESPONSES,
     )
     application.state.settings = config
     application.state.database = database
-    application.state.auth_gateway = auth_gateway
+    application.state.auth_service = authentication
+    application.state.auth_gateway = auth_gateway if auth_gateway is not None else authentication
     application.state.processing = ProcessingGuards()
     install_error_handlers(application)
 

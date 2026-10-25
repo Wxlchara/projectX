@@ -7,7 +7,7 @@ from uuid import UUID
 
 from pydantic import (
     AwareDatetime, BaseModel, ConfigDict, Field as PydanticField,
-    HttpUrl, JsonValue, StrictBool, model_validator,
+    HttpUrl, JsonValue, SecretStr, StrictBool, model_validator,
 )
 
 Revision = Annotated[int, PydanticField(strict=True, ge=1)]
@@ -124,8 +124,10 @@ class User(Model):
 
 
 class Credentials(Model):
-    username: Annotated[str, PydanticField(min_length=3, max_length=64)]
-    password: Annotated[str, PydanticField(min_length=8, max_length=128)]
+    username: Annotated[str, PydanticField(
+        min_length=3, max_length=64, pattern=r"^[A-Za-z0-9][A-Za-z0-9_.-]*$"
+    )]
+    password: Annotated[SecretStr, PydanticField(min_length=8, max_length=128)]
 
 
 class SessionResponse(Model):
