@@ -1,8 +1,12 @@
 .DS_Store
 ../.idea/
+.idea/
+*.egg-info/
+.ruff_cache/
 __pycache__/
 *.py[cod]
 .venv/
+.runtime/
 venv/
 .pytest_cache/
 .coverage
