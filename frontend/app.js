@@ -32,6 +32,16 @@ function badge(text, kind = '') { return `<span class="badge ${kind}">${esc(text
 function notice(text, kind = 'info') { return `<div class="inline-notice ${kind}">${icon('info')}<span>${text}</span></div>`; }
 function empty(title, description, action = '') { return `<div class="empty-panel">${icon('file')}<h3>${title}</h3><p>${description}</p>${action}</div>`; }
 function progress(value, label) { const number = Number.isFinite(value) ? Math.max(0,Math.min(100,value)) : null; return `<div class="progress-stat"><div><span>${label}</span><strong>${number === null ? 'Нужна проверка' : `${number}%`}</strong></div><div class="progress-track"><i style="width:${number ?? 0}%"></i></div></div>`; }
+function updateDemoReadiness(item) {
+  const required = listItems(item.checklist).filter(entry => entry.mandatory && entry.readiness_contributing !== false && entry.kind !== 'process_action');
+  const applicable = required.filter(entry => entry.applicability === 'yes');
+  const satisfied = applicable.filter(entry => entry.state === 'satisfied').length;
+  const unknown = required.filter(entry => entry.applicability === 'unknown' || (entry.applicability === 'yes' && ['needs_verification','received'].includes(entry.state))).length;
+  const blocking = applicable.filter(entry => ['missing','issues'].includes(entry.state)).length;
+  const next = required.find(entry => entry.applicability === 'unknown' || (entry.applicability === 'yes' && entry.state !== 'satisfied'));
+  const percent = applicable.length ? Math.floor(100 * satisfied / applicable.length) : null;
+  item.readiness = {percent,required_total:applicable.length,satisfied_required:satisfied,unknown_required_conditions:unknown,blocking_count:blocking,ready:percent===100 && unknown===0 && blocking===0,reasons:next?[`Проверьте: ${next.title || next.requirement_id || 'обязательное требование'}`]:[]};
+}
 function fmtError(error) { return error instanceof ApiError ? error.message : 'Не удалось выполнить действие. Попробуйте ещё раз.'; }
 let toastTimer;
 function toast(message, kind = 'info') { const element = $('toast'); element.textContent = message; element.className = `toast visible ${kind}`; clearTimeout(toastTimer); toastTimer = setTimeout(() => element.classList.remove('visible'), 5000); }
@@ -49,6 +59,7 @@ async function init() {
     state.user = { id:'demo-user', username:'demo' };
     state.profile = clone(sampleProfile);
     state.destinations = clone(sampleDestinations);
+    state.demo.cases.forEach(updateDemoReadiness);
     state.cases = state.demo.cases;
     state.documents = state.demo.documents;
   }
@@ -415,7 +426,7 @@ async function submitCase(form) {
   const trip={purpose:'tourism',destination_country:country?.destination_country||data.scenario_id.split('_')[0],starts_on:data.starts_on,ends_on:data.ends_on,departure_city:data.departure_city,application_country:data.application_country==='unknown'?null:data.application_country,accommodation_type:data.accommodation_type==='unknown'?null:data.accommodation_type,funding_type:data.funding_type==='unknown'?null:data.funding_type};
   let item;
   if (state.mode==='api') item=await api.createCase({scenario_id:data.scenario_id,trip,answers:{}});
-  else { item={...clone(sampleCase),id:`demo-${Date.now()}`,scenario_id:data.scenario_id,trip,attached_document_ids:[],checklist:clone(sampleCase.checklist).map(c=>({...c,state:'needs_verification'})),readiness:{percent:null,required_total:7,satisfied_required:0,ready:false,unknown_required_conditions:7,blocking_count:0,reasons:['Откройте чек-лист и добавьте документы']},process:{percent:0,current_stage:'Дело создано',outcome:'unknown',stages:clone(sampleCase.process.stages)}};state.demo.cases.unshift(item); }
+  else { item={...clone(sampleCase),id:`demo-${Date.now()}`,scenario_id:data.scenario_id,trip,attached_document_ids:[],checklist:clone(sampleCase.checklist).map(c=>({...c,state:'needs_verification'})),process:{percent:0,current_stage:'Дело создано',outcome:'unknown',stages:clone(sampleCase.process.stages)}};updateDemoReadiness(item);state.demo.cases.unshift(item); }
   toast('Дело создано.','success'); location.hash=`#/cases/${encodeURIComponent(item.id)}`;
 }
 
@@ -485,7 +496,7 @@ async function runChecks(caseId) {
 async function toggleChecklist(caseId,itemId,current) {
   const completed=current!=='satisfied';
   if (state.mode==='api') await api.updateChecklist(caseId,itemId,{state:completed?'satisfied':'pending'});
-  else {const item=state.demo.cases.find(c=>c.id===caseId)?.checklist.find(c=>c.id===itemId);if(item)item.state=completed?'satisfied':'needs_verification';}
+  else {const demoCase=state.demo.cases.find(c=>c.id===caseId);const item=demoCase?.checklist.find(c=>c.id===itemId);if(item){item.state=completed?'satisfied':'needs_verification';updateDemoReadiness(demoCase);}}
   toast('Ручное действие обновлено.','success'); await navigate();
 }
 

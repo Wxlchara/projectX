@@ -100,6 +100,33 @@ assert.ok(!app.innerHTML.includes('name="citizenship"'), 'fixed Russian citizens
 assert.ok(!app.innerHTML.includes('class="workspace-side"'), 'workspace should not duplicate the header menu');
 await visit('#/cases', 'Мои дела');
 await visit('#/cases/new?scenario=JP_TOURISM', 'Новое дело');
+globalThis.FormData = class {
+  constructor(form) { this.fields = form.fields; }
+  *[Symbol.iterator]() { yield* Object.entries(this.fields); }
+};
+const newCaseForm = {
+  dataset: { form: 'new-case' },
+  fields: { scenario_id:'JP_TOURISM', starts_on:'2027-06-10', ends_on:'2027-06-20', departure_city:'Москва', application_country:'RU', accommodation_type:'unknown', funding_type:'unknown' },
+  querySelector() { return {disabled:false}; }
+};
+await callbacks.get('submit')({ target: { closest() { return newCaseForm; } }, preventDefault() {} });
+globalThis.FormData = OriginalFormData;
+const createdCaseHash = location.hash;
+const createdCaseId = createdCaseHash.split('/')[2];
+await visit(createdCaseHash, '0 из 6 обязательных требований выполнено');
+for (const id of ['route','accommodation','photo']) {
+  location.hash = `${createdCaseHash}/checklist`;
+  await callbacks.get('hashchange')();
+  const button = {dataset:{action:'toggle-checklist',case:createdCaseId,id,state:'needs_verification'},disabled:false};
+  await callbacks.get('click')({target:{closest() { return button; }}});
+}
+await visit(createdCaseHash, '3 из 6 обязательных требований выполнено');
+assert.ok(app.innerHTML.includes('50%'), 'readiness bar should reflect completed manual steps');
+location.hash = `${createdCaseHash}/checklist`;
+await callbacks.get('hashchange')();
+const unmarkButton = {dataset:{action:'toggle-checklist',case:createdCaseId,id:'route',state:'satisfied'},disabled:false};
+await callbacks.get('click')({target:{closest() { return unmarkButton; }}});
+await visit(createdCaseHash, '2 из 6 обязательных требований выполнено');
 await visit('#/cases/demo-france', 'Готовность пакета');
 await visit('#/cases/demo-france/edit', 'Изменить поездку');
 await visit('#/cases/demo-france/checklist', 'Smart Checklist');
