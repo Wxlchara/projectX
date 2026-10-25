@@ -32,3 +32,111 @@ dialog{border:0;padding:0;color:var(--ink)}dialog::backdrop{background:rgba(15,3
 @media(max-width:760px){.logout-button{font-size:11px}}
 .case-edit-link{display:flex;justify-content:flex-end;margin:0 0 18px}.case-edit-link .text-link{display:inline-flex;align-items:center;gap:6px;color:var(--blue);font-size:13px;font-weight:700}.case-edit-link svg{width:16px;height:16px}.case-danger{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-top:20px;padding:24px}.case-danger strong{font-size:17px}.case-danger p{margin:5px 0 0;color:var(--muted);font-size:13px}@media(max-width:760px){.case-danger{flex-direction:column;align-items:stretch}.case-danger .button{width:100%}}
 .attached-document{display:flex;align-items:center;gap:10px}.attached-document .attached-row{flex:1;min-width:0}.detach-button{border:0;background:transparent;color:var(--muted);font-size:12px;font-weight:700;cursor:pointer}.detach-button:hover{color:#b14444}.document-danger{display:flex;justify-content:flex-end;margin:-20px 0 16px}
+
+/* Layout QA: keep every card inside the page gutter and let long labels wrap. */
+.destination-panel,.surface-card,.workspace-main{min-width:0;max-width:100%}
+.country-card-top>div,.detail-title>div,.case-list-top>div,.attached-document{min-width:0}
+.country-card h3,.detail-title h1,.case-list-top h2,.page-head h1,.next-step h2{overflow-wrap:anywhere}
+.country-type,.country-description,.small-muted,.attached-row{overflow-wrap:anywhere}
+.badge{max-width:100%;white-space:normal;text-align:center}
+.attached-document .attached-row{min-width:0}
+@media(max-width:1120px){
+  .site-header{height:64px}
+  .nav-inner{gap:12px}
+  .main-nav{position:absolute;top:64px;left:0;right:0;display:none;flex-direction:column;align-items:stretch;gap:0;margin-left:0;padding:12px 24px;background:#fff;border-top:1px solid var(--line);box-shadow:0 15px 22px rgba(20,45,75,.09);z-index:20}
+  .main-nav.open{display:flex}
+  .main-nav a{padding:13px 6px}
+  .menu-toggle{display:grid}
+  .nav-right{margin-left:auto}
+}
+@media(max-width:760px){
+  .destination-panel{width:100%;margin-left:0;padding:22px}
+  .country-card-top{align-items:flex-start;gap:12px}
+  .country-card .country-icon{width:42px;height:42px}
+  .country-card .country-icon svg{width:23px;height:23px}
+  .case-list-top,.case-heading{flex-wrap:wrap}
+  .case-list-top .badge{margin-left:63px}
+  .case-list-actions{flex-wrap:wrap}
+  .case-list-actions .button{flex:1 1 100%;white-space:normal;text-align:center}
+  .detail-title{align-items:flex-start;gap:12px}
+  .detail-title h1{font-size:27px}
+  .country-icon.large{width:58px;height:58px;border-radius:15px}
+  .country-icon.large svg{width:30px;height:30px}
+}
+@media(max-width:390px){
+  .container{width:calc(100% - 32px)}
+  .destination-panel,.detail-card,.form-card,.inner-card{padding:18px}
+  .button{max-width:100%;white-space:normal;text-align:center}
+  .form-actions .button,.detail-actions .button,.hero-actions .button{width:100%}
+}
+@media(max-width:980px){
+  .workspace-layout{display:block}
+  .workspace-side{position:static;display:flex;gap:5px;overflow-x:auto;margin-bottom:18px;padding:8px;border-radius:13px}
+  .workspace-side .side-label,.workspace-side .side-help{display:none}
+  .side-link{white-space:nowrap;padding:10px}
+  .workspace-columns,.case-overview-grid{grid-template-columns:1fr}
+}
+
+/* Screen review: fluid canvas and tighter vertical rhythm. */
+.container{width:min(calc(100% - clamp(32px,5vw,96px)),1680px)}
+.site-header{height:64px}
+.nav-inner{gap:24px}
+.main-nav{gap:22px}
+.hero{padding:46px 0 54px}
+.hero-layout{margin-bottom:34px}
+.hero-copy{max-width:960px}
+.hero h1{font-size:clamp(38px,4.2vw,68px)}
+.hero-description{font-size:16px}
+.home-destinations{padding:40px 0 34px}
+.how-section{padding:40px 0 58px}
+.workspace-bg{min-height:0;padding:34px 0 58px}
+.workspace-layout{display:block}
+.workspace-main{max-width:1440px;margin-inline:auto}
+.page-surface{min-height:0;padding:42px 0 58px}
+.auth-page{min-height:0;padding:52px 0 68px}
+.country-card h3{font-size:20px}
+.country-type,.country-description,.country-details{font-size:14px}
+.form-field{font-size:14px}
+.form-field input,.form-field select,.form-field textarea{font-size:15px}
+.comparison-picker{padding:20px 24px;margin-bottom:18px;max-width:520px}
+.comparison-picker .form-field{margin:0}
+.compare-country-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:24px;padding-top:24px;border-top:1px solid var(--line)}
+.form-card.compact .compare-submit{margin-top:26px}
+.comparison-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;align-items:stretch}
+.comparison-country{display:flex;flex-direction:column;gap:18px;min-width:0;padding:26px;border-radius:20px;box-shadow:none}
+.comparison-country-head{display:flex;align-items:center;gap:14px}
+.comparison-country-head h3{margin:0;font-size:22px}
+.comparison-country p{margin:0;color:var(--muted);font-size:15px;line-height:1.5}
+.comparison-facts{display:grid;gap:0;margin:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.comparison-facts div{display:flex;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1px solid var(--line)}
+.comparison-facts div:last-child{border-bottom:0}
+.comparison-facts dt{color:var(--muted)}
+.comparison-facts dd{margin:0;text-align:right;font-weight:650}
+.comparison-country .factor-list{margin-bottom:auto}
+.comparison-country .button{align-self:flex-start;margin-top:12px}
+@media(max-width:1120px){.main-nav{gap:0}}
+@media(max-width:760px){
+  .container{width:min(100% - 40px,680px)}
+  .hero{padding:34px 0 42px}
+  .hero-layout{margin-bottom:26px}
+  .home-destinations{padding:32px 0 28px}
+  .how-section{padding:32px 0 46px}
+  .workspace-bg,.page-surface{padding:26px 0 46px}
+  .workspace-main{max-width:100%}
+  .comparison-picker{max-width:100%;padding:18px}
+}
+@media(max-width:390px){.container{width:calc(100% - 32px)}}
+.country-card h3{font-size:clamp(20px,1.25vw,23px)}
+.country-type,.country-description,.country-details,.comparison-row p,.small-muted{font-size:15px}
+.inline-notice{font-size:14px;margin-bottom:16px}
+.badge{font-size:12px}
+.eyebrow{font-size:13px}
+.step-card h3{font-size:18px}
+.step-card p{font-size:14px}
+@media(max-width:760px){
+  .country-card h3{font-size:18px}
+  .country-type,.country-description,.country-details,.small-muted{font-size:14px}
+  .step-card h3{font-size:16px}
+  .step-card p{font-size:13px}
+  .inline-notice{font-size:13px}
+}
