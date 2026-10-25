@@ -1,0 +1,194 @@
+{
+  "name": "Египет",
+  "scenario": {
+    "id": "EG_TOURISM",
+    "destination_country": "EG",
+    "version": "2026-10-25.1",
+    "entry_mode": "evisa",
+    "supported_profile": {
+      "citizenship": "RU",
+      "residence_country": "RU",
+      "minimum_age": 18,
+      "purpose": "tourism",
+      "passport": "ordinary",
+      "travellers": 1,
+      "visa_application": "new; existing permissions require manual assessment"
+    },
+    "requirements": [
+      {
+        "id": "EG.passport",
+        "title": "Действительный загранпаспорт",
+        "kind": "document",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": "passport",
+        "applies_if": null,
+        "source_ids": [
+          "EG_FAQ"
+        ]
+      },
+      {
+        "id": "EG.eta",
+        "title": "Получить и распечатать e-Visa",
+        "kind": "preparation_action",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": null,
+        "applies_if": null,
+        "source_ids": [
+          "EG_FAQ"
+        ]
+      },
+      {
+        "id": "EG.itinerary",
+        "title": "Подготовить маршрут и сведения о гостинице",
+        "kind": "preparation_action",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": null,
+        "applies_if": null,
+        "source_ids": [
+          "EG_FAQ"
+        ]
+      },
+      {
+        "id": "EG.fee",
+        "title": "Подать заявку и оплатить на официальном портале",
+        "kind": "process_action",
+        "mandatory": true,
+        "readiness_contributing": false,
+        "document_type": null,
+        "applies_if": null,
+        "source_ids": [
+          "EG_FAQ"
+        ]
+      }
+    ],
+    "process_stages": [
+      {
+        "id": "EG.form",
+        "title": "Подготовить официальную анкету",
+        "event_types": [
+          "form_prepared"
+        ],
+        "source_ids": [
+          "EG_FAQ"
+        ]
+      },
+      {
+        "id": "EG.submission",
+        "title": "Подать официальное заявление",
+        "event_types": [
+          "submitted"
+        ],
+        "source_ids": [
+          "EG_FAQ"
+        ]
+      },
+      {
+        "id": "EG.decision",
+        "title": "Получить решение с известным исходом",
+        "event_types": [
+          "decision_received"
+        ],
+        "source_ids": [
+          "EG_FAQ"
+        ]
+      }
+    ],
+    "sources": [
+      {
+        "id": "EG_FAQ",
+        "url": "https://www.visa2egypt.gov.eg/eVisa/FAQ",
+        "authority": "Ministry of Interior, Egypt",
+        "locator": "Eligible countries; requirements",
+        "checked_at": "2026-10-25T13:03:59Z",
+        "review_after": "2026-11-01",
+        "status": "source_checked",
+        "attempted_at": "2026-10-25T13:03:59Z",
+        "evidence": "РФ допускается к e-Visa; паспорт 6 месяцев с прибытия, распечатка разрешения, маршрут и данные гостиницы.",
+        "notes": null
+      }
+    ],
+    "data_quality": "needs_verification",
+    "entry_source_ids": [
+      "EG_FAQ"
+    ],
+    "questions": [],
+    "coverage": "partial",
+    "unverified_conditions": [
+      "Проверить срок пребывания, допустимый пункт въезда, доступность оплаты и срок обращения; иные способы получения визы не моделируются."
+    ]
+  },
+  "rules": [
+    {
+      "id": "EG.passport.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "EG_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "EG.passport",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "EG_FAQ"
+      ]
+    },
+    {
+      "id": "EG.passport.validity",
+      "version": "2026-10-25.1",
+      "scenario_id": "EG_TOURISM",
+      "kind": "passport_validity",
+      "applies_if": null,
+      "requirement_id": "EG.passport",
+      "parameters": {
+        "anchor": "trip.starts_on",
+        "months": 6,
+        "days": 0
+      },
+      "mandatory": true,
+      "source_ids": [
+        "EG_FAQ"
+      ]
+    },
+    {
+      "id": "EG.eta.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "EG_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "EG.eta",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "EG_FAQ"
+      ]
+    },
+    {
+      "id": "EG.itinerary.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "EG_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "EG.itinerary",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "EG_FAQ"
+      ]
+    },
+    {
+      "id": "EG.fee.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "EG_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "EG.fee",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "EG_FAQ"
+      ]
+    }
+  ]
+}

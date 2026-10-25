@@ -1,0 +1,139 @@
+{
+  "name": "Бразилия",
+  "scenario": {
+    "id": "BR_TOURISM",
+    "destination_country": "BR",
+    "version": "2026-10-25.1",
+    "entry_mode": "visa_free",
+    "supported_profile": {
+      "citizenship": "RU",
+      "residence_country": "RU",
+      "minimum_age": 18,
+      "purpose": "tourism",
+      "passport": "ordinary",
+      "travellers": 1,
+      "visa_application": "new; existing permissions require manual assessment"
+    },
+    "requirements": [
+      {
+        "id": "BR.passport",
+        "title": "Действительный загранпаспорт",
+        "kind": "document",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": "passport",
+        "applies_if": null,
+        "source_ids": [
+          "BR_TREATY"
+        ]
+      }
+    ],
+    "process_stages": [
+      {
+        "id": "BR.entry",
+        "title": "Завершить подготовку ко въезду",
+        "event_types": [
+          "entry_preparation_completed"
+        ],
+        "source_ids": [
+          "BR_TREATY"
+        ]
+      }
+    ],
+    "sources": [
+      {
+        "id": "BR_EMBASSY",
+        "url": "https://www.gov.br/mre/pt-br/embaixada-moscou/servicos-consulares/vistos-visa/visa-free-travel",
+        "authority": "Посольство Бразилии в Москве",
+        "locator": "Консульское предупреждение",
+        "checked_at": null,
+        "review_after": null,
+        "status": "needs_verification",
+        "attempted_at": "2026-10-25T13:03:59Z",
+        "evidence": null,
+        "notes": "Веб-страница закрыта JS/CAPTCHA. Поисковый текст не считается полной проверкой. Практика подсчёта повторных поездок требует сверки."
+      },
+      {
+        "id": "BR_TREATY",
+        "url": "https://www.planalto.gov.br/ccivil_03/_ato2007-2010/2010/decreto/d7271.htm",
+        "authority": "Presidência da República, Brasil",
+        "locator": "Acordo, artigo 1",
+        "checked_at": "2026-10-25T13:03:59Z",
+        "review_after": "2026-11-01",
+        "status": "source_checked",
+        "attempted_at": "2026-10-25T13:03:59Z",
+        "evidence": "Российско-бразильское соглашение освобождает краткие поездки с действительным паспортом на 90 дней в 180 с первого въезда; работа и иные цели отдельно.",
+        "notes": null
+      }
+    ],
+    "data_quality": "needs_verification",
+    "entry_source_ids": [
+      "BR_TREATY"
+    ],
+    "questions": [
+      {
+        "key": "br_prior_stays",
+        "title": "Предыдущие пребывания: даты въезда и выезда; [] означает, что их не было",
+        "value_type": "stays",
+        "source_ids": [
+          "BR_TREATY"
+        ]
+      }
+    ],
+    "coverage": "partial",
+    "unverified_conditions": [
+      "Повторные поездки и начало 180-дневного периода требуют ручного сопоставления с соглашением, а не произвольного сложения дней.",
+      "Полный текущий пограничный перечень и маршрут требуют повторной проверки; отсутствие визы не означает разрешённый въезд."
+    ]
+  },
+  "rules": [
+    {
+      "id": "BR.passport.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "BR_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "BR.passport",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "BR_TREATY"
+      ]
+    },
+    {
+      "id": "BR.passport.validity",
+      "version": "2026-10-25.1",
+      "scenario_id": "BR_TOURISM",
+      "kind": "passport_validity",
+      "applies_if": null,
+      "requirement_id": "BR.passport",
+      "parameters": {
+        "anchor": "trip.starts_on",
+        "months": 0,
+        "days": 0
+      },
+      "mandatory": true,
+      "source_ids": [
+        "BR_TREATY"
+      ]
+    },
+    {
+      "id": "BR.stay",
+      "version": "2026-10-25.1",
+      "scenario_id": "BR_TOURISM",
+      "kind": "stay_limit",
+      "applies_if": null,
+      "requirement_id": null,
+      "parameters": {
+        "days": 90,
+        "window_days": 180,
+        "history_question": "br_prior_stays",
+        "history_mode": "manual"
+      },
+      "mandatory": true,
+      "source_ids": [
+        "BR_TREATY"
+      ]
+    }
+  ]
+}

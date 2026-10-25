@@ -1,0 +1,482 @@
+{
+  "name": "Испания",
+  "scenario": {
+    "id": "ES_TOURISM",
+    "destination_country": "ES",
+    "version": "2026-10-25.1",
+    "entry_mode": "visa",
+    "supported_profile": {
+      "citizenship": "RU",
+      "residence_country": "RU",
+      "minimum_age": 18,
+      "purpose": "tourism",
+      "passport": "ordinary",
+      "travellers": 1,
+      "visa_application": "new; existing permissions require manual assessment"
+    },
+    "requirements": [
+      {
+        "id": "ES.passport",
+        "title": "Действительный загранпаспорт",
+        "kind": "document",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": "passport",
+        "applies_if": null,
+        "source_ids": [
+          "ES_BLS"
+        ]
+      },
+      {
+        "id": "ES.insurance",
+        "title": "Страховка для Шенгена на весь срок",
+        "kind": "document",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": "insurance",
+        "applies_if": null,
+        "source_ids": [
+          "ES_BLS"
+        ]
+      },
+      {
+        "id": "ES.bank",
+        "title": "Оригинальная выписка с движением за три месяца при самостоятельной оплате",
+        "kind": "document",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": "bank_statement",
+        "applies_if": {
+          "field": "trip.funding_type",
+          "op": "eq",
+          "value": "self"
+        },
+        "source_ids": [
+          "ES_BLS"
+        ]
+      },
+      {
+        "id": "ES.sponsor",
+        "title": "Письмо спонсора и его финансовые доказательства",
+        "kind": "preparation_action",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": null,
+        "applies_if": {
+          "field": "trip.funding_type",
+          "op": "in",
+          "value": [
+            "sponsor",
+            "mixed"
+          ]
+        },
+        "source_ids": [
+          "ES_BLS"
+        ]
+      },
+      {
+        "id": "ES.employment",
+        "title": "Подтвердить работу и зарплату",
+        "kind": "preparation_action",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": null,
+        "applies_if": {
+          "field": "profile.employment_status",
+          "op": "eq",
+          "value": "employed"
+        },
+        "source_ids": [
+          "ES_BLS"
+        ]
+      },
+      {
+        "id": "ES.ties",
+        "title": "Подтвердить связи с РФ при отсутствии работы",
+        "kind": "preparation_action",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": null,
+        "applies_if": {
+          "field": "profile.employment_status",
+          "op": "eq",
+          "value": "unemployed"
+        },
+        "source_ids": [
+          "ES_BLS"
+        ]
+      },
+      {
+        "id": "ES.form",
+        "title": "Анкета, фото, внутренние и дополнительные паспортные копии",
+        "kind": "preparation_action",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": null,
+        "applies_if": null,
+        "source_ids": [
+          "ES_BLS"
+        ]
+      },
+      {
+        "id": "ES.accommodation",
+        "title": "Подтвердить жильё",
+        "kind": "preparation_action",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": null,
+        "applies_if": null,
+        "source_ids": [
+          "ES_BLS"
+        ]
+      },
+      {
+        "id": "ES.return",
+        "title": "Подготовить бронь возвращения или маршрут",
+        "kind": "preparation_action",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": null,
+        "applies_if": null,
+        "source_ids": [
+          "ES_BLS"
+        ]
+      },
+      {
+        "id": "ES.fee",
+        "title": "Оплатить применимый сбор у официального оператора",
+        "kind": "process_action",
+        "mandatory": true,
+        "readiness_contributing": false,
+        "document_type": null,
+        "applies_if": null,
+        "source_ids": [
+          "ES_BLS"
+        ]
+      }
+    ],
+    "process_stages": [
+      {
+        "id": "ES.form",
+        "title": "Подготовить официальную анкету",
+        "event_types": [
+          "form_prepared"
+        ],
+        "source_ids": [
+          "ES_BLS"
+        ]
+      },
+      {
+        "id": "ES.submission",
+        "title": "Подать официальное заявление",
+        "event_types": [
+          "submitted"
+        ],
+        "source_ids": [
+          "ES_BLS"
+        ]
+      },
+      {
+        "id": "ES.decision",
+        "title": "Получить решение с известным исходом",
+        "event_types": [
+          "decision_received"
+        ],
+        "source_ids": [
+          "ES_BLS"
+        ]
+      },
+      {
+        "id": "ES.passport_return",
+        "title": "Получить паспорт независимо от исхода",
+        "event_types": [
+          "passport_returned"
+        ],
+        "source_ids": [
+          "ES_BLS"
+        ]
+      }
+    ],
+    "sources": [
+      {
+        "id": "ES_BLS",
+        "url": "https://blsspainrussia.ru/moscow/spanish/assets/pdf/Tourism_Spanish.pdf",
+        "authority": "BLS Spain Russia, визовый оператор",
+        "locator": "Tourism, pp.1–2",
+        "checked_at": "2026-10-25T13:03:59Z",
+        "review_after": "2026-11-01",
+        "status": "source_checked",
+        "attempted_at": "2026-10-25T13:03:59Z",
+        "evidence": "Паспорт: 3 месяца после выезда, 2 страницы, выдача до 10 лет; страховка, жильё, билеты, банковская история и занятость.",
+        "notes": "Указанные в PDF финансовые суммы не подтверждены как действующие для 2026 года; численный порог не используется."
+      },
+      {
+        "id": "ES_CONSULATE",
+        "url": "https://www.exteriores.gob.es/Consulados/moscu/ru/ServiciosConsulares/Paginas/Consular/Visados-Schengen.aspx",
+        "authority": "МИД Испании / консульство в Москве",
+        "locator": "Schengen",
+        "checked_at": null,
+        "review_after": null,
+        "status": "needs_verification",
+        "attempted_at": "2026-10-25T13:03:59Z",
+        "evidence": null,
+        "notes": "Открытие вернуло 403; дата юридической проверки не назначена. Проверить округ, признание паспорта и текущие суммы."
+      }
+    ],
+    "data_quality": "needs_verification",
+    "entry_source_ids": [
+      "ES_BLS"
+    ],
+    "questions": [
+      {
+        "key": "application_date",
+        "title": "Планируемая дата подачи заявления",
+        "value_type": "date",
+        "source_ids": [
+          "ES_BLS"
+        ]
+      },
+      {
+        "key": "blank_passport_pages",
+        "title": "Количество свободных визовых страниц",
+        "value_type": "integer",
+        "source_ids": [
+          "ES_BLS"
+        ],
+        "minimum": 0,
+        "maximum": 100
+      }
+    ],
+    "coverage": "partial",
+    "unverified_conditions": [
+      "Консульская страница вернула 403: округ, признание типа паспорта и текущий финансовый порог требуют проверки.",
+      "Уточнить исполнение страховщиком выплат в ЕС и полный индивидуальный список; суммы из PDF не применяются автоматически."
+    ]
+  },
+  "rules": [
+    {
+      "id": "ES.passport.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "ES_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "ES.passport",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "ES_BLS"
+      ]
+    },
+    {
+      "id": "ES.passport.validity",
+      "version": "2026-10-25.1",
+      "scenario_id": "ES_TOURISM",
+      "kind": "passport_validity",
+      "applies_if": null,
+      "requirement_id": "ES.passport",
+      "parameters": {
+        "anchor": "trip.ends_on",
+        "months": 3,
+        "days": 0
+      },
+      "mandatory": true,
+      "source_ids": [
+        "ES_BLS"
+      ]
+    },
+    {
+      "id": "ES.passport.age",
+      "version": "2026-10-25.1",
+      "scenario_id": "ES_TOURISM",
+      "kind": "passport_max_age",
+      "applies_if": null,
+      "requirement_id": "ES.passport",
+      "parameters": {
+        "anchor": "answers.application_date",
+        "years": 10
+      },
+      "mandatory": true,
+      "source_ids": [
+        "ES_BLS"
+      ]
+    },
+    {
+      "id": "ES.passport.pages",
+      "version": "2026-10-25.1",
+      "scenario_id": "ES_TOURISM",
+      "kind": "assertion",
+      "applies_if": null,
+      "requirement_id": null,
+      "parameters": {
+        "condition": {
+          "field": "answers.blank_passport_pages",
+          "op": "gte",
+          "value": 2
+        },
+        "expected": true,
+        "message": "Нужно не менее двух свободных страниц.",
+        "next_action": "Подготовьте подходящий паспорт.",
+        "severity": "blocking"
+      },
+      "mandatory": true,
+      "source_ids": [
+        "ES_BLS"
+      ]
+    },
+    {
+      "id": "ES.insurance.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "ES_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "ES.insurance",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "ES_BLS"
+      ]
+    },
+    {
+      "id": "ES.insurance.coverage",
+      "version": "2026-10-25.1",
+      "scenario_id": "ES_TOURISM",
+      "kind": "insurance_coverage",
+      "applies_if": null,
+      "requirement_id": "ES.insurance",
+      "parameters": {
+        "territory": "SCHENGEN",
+        "minimum_cover": {
+          "amount": "30000",
+          "currency": "EUR"
+        }
+      },
+      "mandatory": true,
+      "source_ids": [
+        "ES_BLS"
+      ]
+    },
+    {
+      "id": "ES.bank.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "ES_TOURISM",
+      "kind": "requirement",
+      "applies_if": {
+        "field": "trip.funding_type",
+        "op": "eq",
+        "value": "self"
+      },
+      "requirement_id": "ES.bank",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "ES_BLS"
+      ]
+    },
+    {
+      "id": "ES.sponsor.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "ES_TOURISM",
+      "kind": "requirement",
+      "applies_if": {
+        "field": "trip.funding_type",
+        "op": "in",
+        "value": [
+          "sponsor",
+          "mixed"
+        ]
+      },
+      "requirement_id": "ES.sponsor",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "ES_BLS"
+      ]
+    },
+    {
+      "id": "ES.employment.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "ES_TOURISM",
+      "kind": "requirement",
+      "applies_if": {
+        "field": "profile.employment_status",
+        "op": "eq",
+        "value": "employed"
+      },
+      "requirement_id": "ES.employment",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "ES_BLS"
+      ]
+    },
+    {
+      "id": "ES.ties.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "ES_TOURISM",
+      "kind": "requirement",
+      "applies_if": {
+        "field": "profile.employment_status",
+        "op": "eq",
+        "value": "unemployed"
+      },
+      "requirement_id": "ES.ties",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "ES_BLS"
+      ]
+    },
+    {
+      "id": "ES.form.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "ES_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "ES.form",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "ES_BLS"
+      ]
+    },
+    {
+      "id": "ES.accommodation.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "ES_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "ES.accommodation",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "ES_BLS"
+      ]
+    },
+    {
+      "id": "ES.return.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "ES_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "ES.return",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "ES_BLS"
+      ]
+    },
+    {
+      "id": "ES.fee.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "ES_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "ES.fee",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "ES_BLS"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,312 @@
+{
+  "name": "США",
+  "scenario": {
+    "id": "US_TOURISM",
+    "destination_country": "US",
+    "version": "2026-10-25.1",
+    "entry_mode": "visa",
+    "supported_profile": {
+      "citizenship": "RU",
+      "residence_country": "RU",
+      "minimum_age": 18,
+      "purpose": "tourism",
+      "passport": "ordinary",
+      "travellers": 1,
+      "visa_application": "new; existing permissions require manual assessment"
+    },
+    "requirements": [
+      {
+        "id": "US.passport",
+        "title": "Действительный загранпаспорт",
+        "kind": "document",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": "passport",
+        "applies_if": null,
+        "source_ids": [
+          "US_VISITOR"
+        ]
+      },
+      {
+        "id": "US.form",
+        "title": "Заполнить DS-160 и загрузить фото",
+        "kind": "preparation_action",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": null,
+        "applies_if": null,
+        "source_ids": [
+          "US_VISITOR"
+        ]
+      },
+      {
+        "id": "US.fee",
+        "title": "Оплатить применимый сбор по порядку выбранного поста",
+        "kind": "process_action",
+        "mandatory": true,
+        "readiness_contributing": false,
+        "document_type": null,
+        "applies_if": null,
+        "source_ids": [
+          "US_VISITOR"
+        ]
+      },
+      {
+        "id": "US.interview",
+        "title": "Записаться и пройти интервью",
+        "kind": "process_action",
+        "mandatory": true,
+        "readiness_contributing": false,
+        "document_type": null,
+        "applies_if": {
+          "field": "answers.us_interview_required",
+          "op": "eq",
+          "value": true
+        },
+        "source_ids": [
+          "US_VISITOR"
+        ]
+      },
+      {
+        "id": "US.supporting",
+        "title": "Подготовить возможные подтверждения цели, средств и возвращения",
+        "kind": "preparation_action",
+        "mandatory": false,
+        "readiness_contributing": false,
+        "document_type": null,
+        "applies_if": null,
+        "source_ids": [
+          "US_VISITOR"
+        ]
+      }
+    ],
+    "process_stages": [
+      {
+        "id": "US.form",
+        "title": "Подготовить официальную анкету",
+        "event_types": [
+          "form_prepared"
+        ],
+        "source_ids": [
+          "US_VISITOR"
+        ]
+      },
+      {
+        "id": "US.appointment",
+        "title": "Записаться на требуемое интервью",
+        "event_types": [
+          "appointment_booked"
+        ],
+        "applies_if": {
+          "field": "answers.us_interview_required",
+          "op": "eq",
+          "value": true
+        },
+        "source_ids": [
+          "US_VISITOR"
+        ]
+      },
+      {
+        "id": "US.submission",
+        "title": "Подать официальное заявление",
+        "event_types": [
+          "submitted"
+        ],
+        "source_ids": [
+          "US_VISITOR"
+        ]
+      },
+      {
+        "id": "US.decision",
+        "title": "Получить решение с известным исходом",
+        "event_types": [
+          "decision_received"
+        ],
+        "source_ids": [
+          "US_VISITOR"
+        ]
+      },
+      {
+        "id": "US.passport_return",
+        "title": "Получить паспорт независимо от исхода",
+        "event_types": [
+          "passport_returned"
+        ],
+        "source_ids": [
+          "US_VISITOR"
+        ]
+      }
+    ],
+    "sources": [
+      {
+        "id": "US_PASSPORT_EXCEPTION",
+        "url": "https://www.cbp.gov/document/bulletins/six-month-club-update",
+        "authority": "US Customs and Border Protection",
+        "locator": "Country-specific agreements",
+        "checked_at": null,
+        "review_after": null,
+        "status": "needs_verification",
+        "attempted_at": "2026-10-25T13:03:59Z",
+        "evidence": null,
+        "notes": "403 при открытии: применимость исключения для РФ не сверена; 6 месяцев не объявляются универсальным блокирующим правилом."
+      },
+      {
+        "id": "US_POSTS",
+        "url": "https://travel.state.gov/content/travel/en/us-visas/visa-information-resources/list-of-posts-niv.html",
+        "authority": "US Department of State",
+        "locator": "Russia – Moscow",
+        "checked_at": "2026-10-25T13:03:59Z",
+        "review_after": "2026-11-01",
+        "status": "source_checked",
+        "attempted_at": "2026-10-25T13:03:59Z",
+        "evidence": "Для Москвы приведены Warsaw и Astana; это не подтверждение наличия записи или права въехать в страну подачи.",
+        "notes": null
+      },
+      {
+        "id": "US_VISITOR",
+        "url": "https://travel.state.gov/content/travel/en/us-visas/tourism-visit/visitor.html",
+        "authority": "US Department of State",
+        "locator": "B-2; required and additional documentation",
+        "checked_at": "2026-10-25T13:03:59Z",
+        "review_after": "2026-11-01",
+        "status": "source_checked",
+        "attempted_at": "2026-10-25T13:03:59Z",
+        "evidence": "Туристическая B-2, паспорт, DS-160 и фото, сбор/интервью; дополнительные подтверждения могут запрашиваться. Исключения к запасу паспорта отдельные.",
+        "notes": null
+      }
+    ],
+    "data_quality": "needs_verification",
+    "entry_source_ids": [
+      "US_VISITOR"
+    ],
+    "questions": [
+      {
+        "key": "us_interview_required",
+        "title": "Представительство подтвердило необходимость интервью?",
+        "value_type": "boolean",
+        "source_ids": [
+          "US_VISITOR"
+        ]
+      }
+    ],
+    "coverage": "partial",
+    "unverified_conditions": [
+      "Срок паспорта с учётом исключений CBP не подтверждён: страница исключений вернула 403.",
+      "Пост подачи, допуск в третью страну, интервью/исключения и запрашиваемые доказательства сверяются индивидуально."
+    ]
+  },
+  "rules": [
+    {
+      "id": "US.passport.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "US_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "US.passport",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "US_VISITOR"
+      ]
+    },
+    {
+      "id": "US.passport.validity",
+      "version": "2026-10-25.1",
+      "scenario_id": "US_TOURISM",
+      "kind": "passport_validity",
+      "applies_if": null,
+      "requirement_id": "US.passport",
+      "parameters": {
+        "anchor": "trip.starts_on",
+        "months": 0,
+        "days": 0
+      },
+      "mandatory": true,
+      "source_ids": [
+        "US_VISITOR"
+      ]
+    },
+    {
+      "id": "US.form.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "US_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "US.form",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "US_VISITOR"
+      ]
+    },
+    {
+      "id": "US.fee.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "US_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "US.fee",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "US_VISITOR"
+      ]
+    },
+    {
+      "id": "US.interview.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "US_TOURISM",
+      "kind": "requirement",
+      "applies_if": {
+        "field": "answers.us_interview_required",
+        "op": "eq",
+        "value": true
+      },
+      "requirement_id": "US.interview",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "US_VISITOR"
+      ]
+    },
+    {
+      "id": "US.supporting.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "US_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "US.supporting",
+      "parameters": {},
+      "mandatory": false,
+      "source_ids": [
+        "US_VISITOR"
+      ]
+    },
+    {
+      "id": "US.submission.place",
+      "version": "2026-10-25.1",
+      "scenario_id": "US_TOURISM",
+      "kind": "assertion",
+      "applies_if": null,
+      "requirement_id": null,
+      "parameters": {
+        "condition": {
+          "field": "trip.application_country",
+          "op": "in",
+          "value": [
+            "PL",
+            "KZ"
+          ]
+        },
+        "expected": true,
+        "message": "Выбранная страна подачи не совпадает с указанными постами для Москвы.",
+        "next_action": "Уточните назначенный пост и возможность законно прибыть туда.",
+        "severity": "verify"
+      },
+      "mandatory": true,
+      "source_ids": [
+        "US_POSTS"
+      ]
+    }
+  ]
+}

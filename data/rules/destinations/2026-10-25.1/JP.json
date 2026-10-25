@@ -1,0 +1,385 @@
+{
+  "name": "Япония",
+  "scenario": {
+    "id": "JP_TOURISM",
+    "destination_country": "JP",
+    "version": "2026-10-25.1",
+    "entry_mode": "visa",
+    "supported_profile": {
+      "citizenship": "RU",
+      "residence_country": "RU",
+      "minimum_age": 18,
+      "purpose": "tourism",
+      "passport": "ordinary",
+      "travellers": 1,
+      "visa_application": "new; existing permissions require manual assessment"
+    },
+    "requirements": [
+      {
+        "id": "JP.passport",
+        "title": "Действительный загранпаспорт",
+        "kind": "document",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": "passport",
+        "applies_if": null,
+        "source_ids": [
+          "JP_TOURISM"
+        ]
+      },
+      {
+        "id": "JP.bank",
+        "title": "Оригинальная банковская справка, не онлайн-распечатка",
+        "kind": "document",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": "bank_statement",
+        "applies_if": null,
+        "source_ids": [
+          "JP_TOURISM"
+        ]
+      },
+      {
+        "id": "JP.form",
+        "title": "Две подписанные анкеты с фотографиями",
+        "kind": "preparation_action",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": null,
+        "applies_if": null,
+        "source_ids": [
+          "JP_TOURISM"
+        ]
+      },
+      {
+        "id": "JP.internal_passport",
+        "title": "Подготовить указанные копии внутреннего паспорта",
+        "kind": "preparation_action",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": null,
+        "applies_if": null,
+        "source_ids": [
+          "JP_TOURISM"
+        ]
+      },
+      {
+        "id": "JP.employment",
+        "title": "Подтвердить занятость по своему статусу",
+        "kind": "preparation_action",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": null,
+        "applies_if": {
+          "field": "profile.employment_status",
+          "op": "in",
+          "value": [
+            "employed",
+            "self_employed",
+            "student",
+            "retired"
+          ]
+        },
+        "source_ids": [
+          "JP_TOURISM"
+        ]
+      },
+      {
+        "id": "JP.programme",
+        "title": "Подготовить программу пребывания и бронь перелёта",
+        "kind": "preparation_action",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": null,
+        "applies_if": null,
+        "source_ids": [
+          "JP_TOURISM"
+        ]
+      },
+      {
+        "id": "JP.multiple_letter",
+        "title": "Обосновать многократные посещения и доход",
+        "kind": "preparation_action",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": null,
+        "applies_if": {
+          "field": "answers.jp_multiple_entry",
+          "op": "eq",
+          "value": true
+        },
+        "source_ids": [
+          "JP_TOURISM"
+        ]
+      }
+    ],
+    "process_stages": [
+      {
+        "id": "JP.form",
+        "title": "Подготовить официальную анкету",
+        "event_types": [
+          "form_prepared"
+        ],
+        "source_ids": [
+          "JP_VISA",
+          "JP_TOURISM"
+        ]
+      },
+      {
+        "id": "JP.submission",
+        "title": "Подать официальное заявление",
+        "event_types": [
+          "submitted"
+        ],
+        "source_ids": [
+          "JP_VISA",
+          "JP_TOURISM"
+        ]
+      },
+      {
+        "id": "JP.decision",
+        "title": "Получить решение с известным исходом",
+        "event_types": [
+          "decision_received"
+        ],
+        "source_ids": [
+          "JP_VISA",
+          "JP_TOURISM"
+        ]
+      },
+      {
+        "id": "JP.passport_return",
+        "title": "Получить паспорт независимо от исхода",
+        "event_types": [
+          "passport_returned"
+        ],
+        "source_ids": [
+          "JP_VISA",
+          "JP_TOURISM"
+        ]
+      }
+    ],
+    "sources": [
+      {
+        "id": "JP_TOURISM",
+        "url": "https://www.ru.emb-japan.go.jp/itpr_ja/tourism2022.html",
+        "authority": "Посольство Японии в России",
+        "locator": "Туристическая поездка, таблица",
+        "checked_at": "2026-10-25T13:03:59Z",
+        "review_after": "2026-11-01",
+        "status": "source_checked",
+        "attempted_at": "2026-10-25T13:03:59Z",
+        "evidence": "Две анкеты/фото, паспорт, внутренние копии, банковский оригинал, занятость по статусу, программа и бронь. Онлайн-выписка не заменяет оригинал.",
+        "notes": null
+      },
+      {
+        "id": "JP_VISA",
+        "url": "https://www.ru.emb-japan.go.jp/itpr_ru/visainfo.html",
+        "authority": "Посольство Японии в России",
+        "locator": "Важная информация",
+        "checked_at": "2026-10-25T13:03:59Z",
+        "review_after": "2026-11-01",
+        "status": "source_checked",
+        "attempted_at": "2026-10-25T13:03:59Z",
+        "evidence": "Гражданам РФ требуется предварительная виза; резиденты РФ могут обращаться в российские представительства.",
+        "notes": "На страницах есть различия описания мест приёма; конкретный центр и запись перепроверяются."
+      }
+    ],
+    "data_quality": "needs_verification",
+    "entry_source_ids": [
+      "JP_VISA"
+    ],
+    "questions": [
+      {
+        "key": "jp_bank_original_available",
+        "title": "Есть банковский оригинал с подписью и мокрой печатью?",
+        "value_type": "boolean",
+        "source_ids": [
+          "JP_TOURISM"
+        ]
+      },
+      {
+        "key": "jp_multiple_entry",
+        "title": "Запрашивается многократная виза?",
+        "value_type": "boolean",
+        "source_ids": [
+          "JP_TOURISM"
+        ]
+      }
+    ],
+    "coverage": "partial",
+    "unverified_conditions": [
+      "Сверить актуальное место приёма/запись и требования конкретного консульского округа.",
+      "Оригинал банковского документа и физическая подача не подтверждаются одним PDF в архиве; полнота остаётся ручной."
+    ]
+  },
+  "rules": [
+    {
+      "id": "JP.passport.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "JP_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "JP.passport",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "JP_TOURISM"
+      ]
+    },
+    {
+      "id": "JP.passport.validity",
+      "version": "2026-10-25.1",
+      "scenario_id": "JP_TOURISM",
+      "kind": "passport_validity",
+      "applies_if": null,
+      "requirement_id": "JP.passport",
+      "parameters": {
+        "anchor": "trip.starts_on",
+        "months": 0,
+        "days": 0
+      },
+      "mandatory": true,
+      "source_ids": [
+        "JP_TOURISM"
+      ]
+    },
+    {
+      "id": "JP.bank.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "JP_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "JP.bank",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "JP_TOURISM"
+      ]
+    },
+    {
+      "id": "JP.bank.original",
+      "version": "2026-10-25.1",
+      "scenario_id": "JP_TOURISM",
+      "kind": "assertion",
+      "applies_if": null,
+      "requirement_id": null,
+      "parameters": {
+        "condition": {
+          "field": "answers.jp_bank_original_available",
+          "op": "eq",
+          "value": true
+        },
+        "expected": true,
+        "message": "Онлайн-выписка не заменяет требуемый банковский оригинал.",
+        "next_action": "Закажите оригинал в банке.",
+        "severity": "fix"
+      },
+      "mandatory": true,
+      "source_ids": [
+        "JP_TOURISM"
+      ]
+    },
+    {
+      "id": "JP.form.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "JP_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "JP.form",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "JP_TOURISM"
+      ]
+    },
+    {
+      "id": "JP.internal_passport.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "JP_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "JP.internal_passport",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "JP_TOURISM"
+      ]
+    },
+    {
+      "id": "JP.employment.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "JP_TOURISM",
+      "kind": "requirement",
+      "applies_if": {
+        "field": "profile.employment_status",
+        "op": "in",
+        "value": [
+          "employed",
+          "self_employed",
+          "student",
+          "retired"
+        ]
+      },
+      "requirement_id": "JP.employment",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "JP_TOURISM"
+      ]
+    },
+    {
+      "id": "JP.programme.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "JP_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "JP.programme",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "JP_TOURISM"
+      ]
+    },
+    {
+      "id": "JP.multiple_letter.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "JP_TOURISM",
+      "kind": "requirement",
+      "applies_if": {
+        "field": "answers.jp_multiple_entry",
+        "op": "eq",
+        "value": true
+      },
+      "requirement_id": "JP.multiple_letter",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "JP_TOURISM"
+      ]
+    },
+    {
+      "id": "JP.submission.place",
+      "version": "2026-10-25.1",
+      "scenario_id": "JP_TOURISM",
+      "kind": "assertion",
+      "applies_if": null,
+      "requirement_id": null,
+      "parameters": {
+        "condition": {
+          "field": "trip.application_country",
+          "op": "eq",
+          "value": "RU"
+        },
+        "expected": true,
+        "message": "Подача вне РФ не покрыта проверенным порядком.",
+        "next_action": "Сверьте право подачи в соответствующем представительстве.",
+        "severity": "verify"
+      },
+      "mandatory": true,
+      "source_ids": [
+        "JP_VISA"
+      ]
+    }
+  ]
+}

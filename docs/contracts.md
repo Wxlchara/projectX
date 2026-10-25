@@ -158,3 +158,21 @@ require_owned_case_document проверяют владельца внутри �
 чужой и отсутствующий ресурс дают одинаковые 404. HTTP-модули 3–9 должны
 использовать эти проверки до чтения/изменения/скачивания.
 Примеры и границы интеграционной проверки: [auth-handoff.md](auth-handoff.md).
+
+## Конкретизация пакета 2
+
+GET /destinations и GET /scenarios/{scenario_id} реализованы для 12 направлений.
+Source дополнен attempted_at, locator, evidence и notes. source_checked требует
+фактических checked_at, review_after и evidence; неудачная попытка не становится
+датой юридической проверки. Просроченный источник и зависимый от него режим
+въезда читаются как needs_verification. Scenario дополнен entry_source_ids,
+questions, coverage и unverified_conditions. Все текущие сценарии partial.
+
+Question описывает только определённый ключ answers, его тип/ограничения и
+источники. AppliedRequirement расширяет Requirement применимостью,
+explanation и rule_refs для пакета 3. Занятость: employed/self_employed/student/
+retired/unemployed/other; финансирование: self/sponsor/mixed/other; размещение:
+hotel/host/rental/other, каждый ответ также допускает null.
+Реестр/параметры проверок, источники и порядок обновления:
+[rules-handoff.md](rules-handoff.md). Официальная полнота не подтверждается
+одним наличием карточки страны или работающим endpoint.

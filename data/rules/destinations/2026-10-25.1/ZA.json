@@ -1,0 +1,226 @@
+{
+  "name": "ЮАР",
+  "scenario": {
+    "id": "ZA_TOURISM",
+    "destination_country": "ZA",
+    "version": "2026-10-25.1",
+    "entry_mode": "visa_free",
+    "supported_profile": {
+      "citizenship": "RU",
+      "residence_country": "RU",
+      "minimum_age": 18,
+      "purpose": "tourism",
+      "passport": "ordinary",
+      "travellers": 1,
+      "visa_application": "new; existing permissions require manual assessment"
+    },
+    "requirements": [
+      {
+        "id": "ZA.passport",
+        "title": "Действительный загранпаспорт",
+        "kind": "document",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": "passport",
+        "applies_if": null,
+        "source_ids": [
+          "ZA_ENTRY"
+        ]
+      },
+      {
+        "id": "ZA.funds_return",
+        "title": "Подтвердить средства и выезд из ЮАР",
+        "kind": "preparation_action",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": null,
+        "applies_if": null,
+        "source_ids": [
+          "ZA_ENTRY"
+        ]
+      },
+      {
+        "id": "ZA.yellow_fever",
+        "title": "Сверить применимость и подготовить сертификат при необходимости",
+        "kind": "preparation_action",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": null,
+        "applies_if": {
+          "field": "answers.za_yellow_fever_route",
+          "op": "eq",
+          "value": true
+        },
+        "source_ids": [
+          "ZA_ENTRY"
+        ]
+      }
+    ],
+    "process_stages": [
+      {
+        "id": "ZA.entry",
+        "title": "Завершить подготовку ко въезду",
+        "event_types": [
+          "entry_preparation_completed"
+        ],
+        "source_ids": [
+          "ZA_WAIVER"
+        ]
+      }
+    ],
+    "sources": [
+      {
+        "id": "ZA_ENTRY",
+        "url": "https://www.southafrica-embassy.or.kr/eng/visa/visas.php",
+        "authority": "South African Embassy in Seoul",
+        "locator": "Entry requirements",
+        "checked_at": "2026-10-25T13:03:59Z",
+        "review_after": "2026-11-01",
+        "status": "source_checked",
+        "attempted_at": "2026-10-25T13:03:59Z",
+        "evidence": "Для въезда: машиночитаемый паспорт с двумя страницами и 30 днями после выезда, средства и обратный/дальнейший билет; жёлтая лихорадка зависит от маршрута.",
+        "notes": null
+      },
+      {
+        "id": "ZA_WAIVER",
+        "url": "https://dirco.gov.za/uk/visa-countries-waivers/",
+        "authority": "DIRCO, South African High Commission",
+        "locator": "Passport holders exempt, section 2",
+        "checked_at": "2026-10-25T13:03:59Z",
+        "review_after": "2026-11-01",
+        "status": "source_checked",
+        "attempted_at": "2026-10-25T13:03:59Z",
+        "evidence": "Обычные паспорта РФ включены в освобождение для посещения до 90 дней при соблюдении условий.",
+        "notes": null
+      }
+    ],
+    "data_quality": "needs_verification",
+    "entry_source_ids": [
+      "ZA_WAIVER"
+    ],
+    "questions": [
+      {
+        "key": "blank_passport_pages",
+        "title": "Количество свободных визовых страниц",
+        "value_type": "integer",
+        "source_ids": [
+          "ZA_ENTRY"
+        ],
+        "minimum": 0,
+        "maximum": 100
+      },
+      {
+        "key": "za_yellow_fever_route",
+        "title": "Маршрут затрагивает зону жёлтой лихорадки?",
+        "value_type": "boolean",
+        "source_ids": [
+          "ZA_ENTRY"
+        ]
+      }
+    ],
+    "coverage": "partial",
+    "unverified_conditions": [
+      "Сверить пограничные условия и маршрут: точные исключения по жёлтой лихорадке, предыдущие визиты и транзит полностью не покрыты."
+    ]
+  },
+  "rules": [
+    {
+      "id": "ZA.passport.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "ZA_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "ZA.passport",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "ZA_ENTRY"
+      ]
+    },
+    {
+      "id": "ZA.passport.validity",
+      "version": "2026-10-25.1",
+      "scenario_id": "ZA_TOURISM",
+      "kind": "passport_validity",
+      "applies_if": null,
+      "requirement_id": "ZA.passport",
+      "parameters": {
+        "anchor": "trip.ends_on",
+        "months": 0,
+        "days": 30
+      },
+      "mandatory": true,
+      "source_ids": [
+        "ZA_ENTRY"
+      ]
+    },
+    {
+      "id": "ZA.passport.pages",
+      "version": "2026-10-25.1",
+      "scenario_id": "ZA_TOURISM",
+      "kind": "assertion",
+      "applies_if": null,
+      "requirement_id": null,
+      "parameters": {
+        "condition": {
+          "field": "answers.blank_passport_pages",
+          "op": "gte",
+          "value": 2
+        },
+        "expected": true,
+        "message": "Нужно две свободные страницы.",
+        "next_action": "Проверьте подходящий паспорт.",
+        "severity": "blocking"
+      },
+      "mandatory": true,
+      "source_ids": [
+        "ZA_ENTRY"
+      ]
+    },
+    {
+      "id": "ZA.stay",
+      "version": "2026-10-25.1",
+      "scenario_id": "ZA_TOURISM",
+      "kind": "stay_limit",
+      "applies_if": null,
+      "requirement_id": null,
+      "parameters": {
+        "days": 90
+      },
+      "mandatory": true,
+      "source_ids": [
+        "ZA_WAIVER"
+      ]
+    },
+    {
+      "id": "ZA.funds_return.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "ZA_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "ZA.funds_return",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "ZA_ENTRY"
+      ]
+    },
+    {
+      "id": "ZA.yellow_fever.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "ZA_TOURISM",
+      "kind": "requirement",
+      "applies_if": {
+        "field": "answers.za_yellow_fever_route",
+        "op": "eq",
+        "value": true
+      },
+      "requirement_id": "ZA.yellow_fever",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "ZA_ENTRY"
+      ]
+    }
+  ]
+}
