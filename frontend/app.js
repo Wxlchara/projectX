@@ -14,7 +14,7 @@ const clone = value => JSON.parse(JSON.stringify(value));
 const state = {
   mode: 'loading', catalogFallback: false, user: null, profile: null, destinations: [], cases: [], documents: [],
   case: null, document: null, scenario: null, events: [], notifications: [], letters: [],
-  search: '', continent: 'all', schengen: 'all', entry: 'all', visible: 6, comparison: null, comparisonSelection: '', comparisonInputs: { starts_on:'2027-06-10', ends_on:'2027-06-20', departure_city:'Москва', application_country:'RU' }, routeResults: {},
+  search: '', continent: 'all', schengen: 'all', entry: 'all', visible: 6, comparison: null, comparisonSelected: [], comparisonInputs: { starts_on:'2027-06-10', ends_on:'2027-06-20', departure_city:'Москва', application_country:'RU', country_a:'FR_TOURISM', country_b:'JP_TOURISM', country_c:'' }, routeResults: {},
   letter: null, selectedCountry: null, authTab: 'login', mobileMenu: false,
   demo: { cases: [clone(sampleCase)], documents: clone(sampleDocuments), events: clone(sampleEvents), letters: [] }
 };
@@ -138,14 +138,15 @@ function comparePage() {
   const unsupported = state.profile && (state.profile.citizenship !== 'RU' || state.profile.residence_country !== 'RU' || state.profile.has_other_citizenship === true || state.profile.has_foreign_residence_permit === true);
   const rows = listItems(state.comparison?.results || state.comparison);
   const input = state.comparisonInputs;
-  const selected = rows.find(row => (row.scenario_id || row.id) === state.comparisonSelection);
-  return workspace('Сравнение направлений','Выберите параметры поездки, затем откройте результат нужной страны.',`${sampleWarning()}${unsupported?notice('Этот профиль выходит за границы поддерживаемого туристического сценария. Персональное сравнение недоступно.','warning'):''}<form class="surface-card form-card compact" data-form="compare"><div class="form-grid"><label class="form-field">Начало поездки<input name="starts_on" type="date" value="${esc(input.starts_on)}" required></label><label class="form-field">Окончание поездки<input name="ends_on" type="date" value="${esc(input.ends_on)}" required></label><label class="form-field">Город отправления<input name="departure_city" value="${esc(input.departure_city)}" required></label><label class="form-field">Место предполагаемой подачи<select name="application_country"><option value="RU" ${input.application_country==='RU'?'selected':''}>Россия</option><option value="unknown" ${input.application_country==='unknown'?'selected':''}>Неизвестно</option></select></label></div><button class="button button-primary" type="submit" ${unsupported?'disabled':''}>Сравнить направления ${icon('arrow')}</button></form><div class="compare-results"><div class="section-split"><h2>Результат по стране</h2>${badge(state.mode==='demo'?'Демо-данные':'Персональный расчёт',state.mode==='demo'?'demo':'')}</div>${rows.length?`<div class="surface-card comparison-picker"><label class="form-field">Страна<select id="comparison-country"><option value="">Выберите страну</option>${rows.map(row=>{const country=state.destinations.find(item=>countryId(item)===(row.scenario_id||row.id))||row;const id=row.scenario_id||row.id;return `<option value="${esc(id)}" ${state.comparisonSelection===id?'selected':''}>${esc(countryName(country))}</option>`}).join('')}</select></label></div>${selected?comparisonRow(selected):empty('Выберите страну','Результат выбранного направления появится здесь.')}`:empty('Начните со сравнения','Задайте даты поездки, чтобы открыть результат по нужной стране.')}</div>`, '/compare');
+  const countryOptions = (selected, optional = false) => `${optional?'<option value="">Без третьей страны</option>':''}${state.destinations.map(country=>`<option value="${esc(countryId(country))}" ${countryId(country)===selected?'selected':''}>${esc(countryName(country))}</option>`).join('')}`;
+  const selectedRows = state.comparisonSelected.map(id => rows.find(row => (row.scenario_id || row.id) === id) || {scenario_id:id,summary:'Результат для этой страны пока не получен. Попробуйте повторить сравнение.'});
+  return workspace('Сравнение направлений','Выберите две или три страны и параметры поездки.',`${sampleWarning()}${unsupported?notice('Этот профиль выходит за границы поддерживаемого туристического сценария. Персональное сравнение недоступно.','warning'):''}<form class="surface-card form-card compact" data-form="compare"><div class="form-grid"><label class="form-field">Начало поездки<input name="starts_on" type="date" value="${esc(input.starts_on)}" required></label><label class="form-field">Окончание поездки<input name="ends_on" type="date" value="${esc(input.ends_on)}" required></label><label class="form-field">Город отправления<input name="departure_city" value="${esc(input.departure_city)}" required></label><label class="form-field">Место предполагаемой подачи<select name="application_country"><option value="RU" ${input.application_country==='RU'?'selected':''}>Россия</option><option value="unknown" ${input.application_country==='unknown'?'selected':''}>Неизвестно</option></select></label></div><div class="compare-country-fields"><label class="form-field">Первая страна<select name="country_a" required>${countryOptions(input.country_a)}</select></label><label class="form-field">Вторая страна<select name="country_b" required>${countryOptions(input.country_b)}</select></label><label class="form-field">Третья страна, по желанию<select name="country_c">${countryOptions(input.country_c,true)}</select></label></div><button class="button button-primary compare-submit" type="submit" ${unsupported?'disabled':''}>Сравнить направления ${icon('arrow')}</button></form><section class="compare-results" id="compare-results"><div class="section-split"><h2>Сравнение стран</h2>${badge(state.mode==='demo'?'Демо-данные':'Персональный расчёт',state.mode==='demo'?'demo':'')}</div>${selectedRows.length?`<div class="comparison-grid">${selectedRows.map(comparisonCard).join('')}</div>`:empty('Выберите страны','Результаты выбранных направлений появятся здесь после сравнения.')}</section>`, '/compare');
 }
 
-function comparisonRow(row) {
+function comparisonCard(row) {
   const country = state.destinations.find(item=>countryId(item)===(row.scenario_id||row.id)) || row;
   const factors = row.factors || [];
-  return `<article class="comparison-row surface-card"><span class="country-icon">${icon(countryIcon(country))}</span><div><h3>${esc(countryName(country))}</h3><p>${esc(row.summary || 'Требования и неизвестные условия показаны отдельно.')}</p><div class="factor-list">${(Array.isArray(factors)?factors:[]).slice(0,3).map(f=>badge(f.label||f.message||String(f),'neutral')).join('')}${row.unknown_count!=null?badge(`${row.unknown_count} неизвестных условий`,'warning'):''}</div></div><a class="button button-outline" href="#/destinations/${encodeURIComponent(countryId(country))}">Подробнее</a></article>`;
+  return `<article class="comparison-country surface-card"><div class="comparison-country-head"><span class="country-icon">${icon(countryIcon(country))}</span><h3>${esc(countryName(country))}</h3></div><dl class="comparison-facts"><div><dt>Регион</dt><dd>${esc(countryContinent(country))}</dd></div><div><dt>Шенгенская зона</dt><dd>${countrySchengen(country)===true?'Да':countrySchengen(country)===false?'Нет':'Неизвестно'}</dd></div><div><dt>Въезд</dt><dd>${esc(entryText(countryEntry(country)))}</dd></div></dl><p>${esc(row.summary || 'Требования и неизвестные условия показаны отдельно.')}</p><div class="factor-list">${(Array.isArray(factors)?factors:[]).slice(0,3).map(f=>badge(f.label||f.message||String(f),'neutral')).join('')}${row.unknown_count!=null?badge(`${row.unknown_count} неизвестных условий`,'warning'):''}</div><a class="button button-outline" href="#/destinations/${encodeURIComponent(countryId(country))}">Подробнее ${icon('arrow')}</a></article>`;
 }
 
 function casesPage() {
@@ -317,7 +318,6 @@ document.addEventListener('input', event => {
 });
 
 document.addEventListener('change', event => {
-  if (event.target.id === 'comparison-country') { state.comparisonSelection = event.target.value; const scroll = window.scrollY; $('app').innerHTML = header()+comparePage()+footer(); window.scrollTo(0,scroll); return; }
   if (['continent-filter', 'schengen-filter', 'entry-filter'].includes(event.target.id)) {
     state.continent = $('continent-filter').value; state.schengen = $('schengen-filter').value;
     state.entry = $('entry-filter').value; state.visible = 6;
@@ -398,11 +398,14 @@ async function submitProfile(form) {
 async function submitComparison(form) {
   const data=Object.fromEntries(new FormData(form));
   if (data.starts_on>data.ends_on) { toast('Окончание поездки должно быть позже начала.','error');return; }
+  const selected=[data.country_a,data.country_b,data.country_c].filter(Boolean);
+  if (selected.length<2 || new Set(selected).size!==selected.length) { toast('Выберите две или три разные страны.','error');return; }
   const trip={purpose:'tourism',destination_country:null,starts_on:data.starts_on,ends_on:data.ends_on,departure_city:data.departure_city,application_country:data.application_country,accommodation_type:null,funding_type:null};
   if (state.mode==='api') state.comparison=await api.compare({trip,answers:{}});
   else state.comparison={results:state.destinations.map(country=>({scenario_id:countryId(country),summary:'Демо: точные требования не проверены.',unknown_count:1,factors:[{label:'Нужна сверка источника'}]}))};
-  state.comparisonInputs=data; state.comparisonSelection='';
+  state.comparisonInputs=data; state.comparisonSelected=selected;
   toast('Сравнение подготовлено.','success'); await navigate();
+  $('compare-results')?.scrollIntoView?.({behavior:'smooth',block:'start'});
 }
 
 async function submitCase(form) {

@@ -78,15 +78,23 @@ globalThis.FormData = class {
 const compareButton = { disabled: false };
 const compareForm = {
   dataset: { form: 'compare' },
-  fields: { starts_on:'2027-06-10', ends_on:'2027-06-20', departure_city:'Москва', application_country:'RU' },
+  fields: { starts_on:'2027-06-10', ends_on:'2027-06-20', departure_city:'Москва', application_country:'RU', country_a:'FR_TOURISM', country_b:'JP_TOURISM', country_c:'' },
   querySelector() { return compareButton; }
 };
 await callbacks.get('submit')({ target: { closest() { return compareForm; } }, preventDefault() {} });
+assert.ok(app.innerHTML.includes('name="country_a"') && app.innerHTML.includes('name="country_b"'), 'comparison should select countries before submitting');
+assert.ok(!app.innerHTML.includes('id="comparison-country"'), 'result should not require a second selection');
+assert.equal((app.innerHTML.match(/class="comparison-country surface-card"/g) || []).length, 2, 'two countries should appear after submitting');
+assert.ok(app.innerHTML.includes('<h3>Франция</h3>') && app.innerHTML.includes('<h3>Япония</h3>'), 'selected countries should appear side by side');
+assertBalancedMarkup(app.innerHTML, '#/compare');
+compareForm.fields.country_c = 'EG_TOURISM';
+await callbacks.get('submit')({ target: { closest() { return compareForm; } }, preventDefault() {} });
+assert.equal((app.innerHTML.match(/class="comparison-country surface-card"/g) || []).length, 3, 'optional third country should appear');
+compareForm.fields.country_b = 'FR_TOURISM';
+await callbacks.get('submit')({ target: { closest() { return compareForm; } }, preventDefault() {} });
+assert.ok(toast.textContent.includes('разные страны'), 'duplicate countries should be rejected');
+assert.equal((app.innerHTML.match(/class="comparison-country surface-card"/g) || []).length, 3, 'invalid selection should preserve prior results');
 globalThis.FormData = OriginalFormData;
-assert.ok(app.innerHTML.includes('id="comparison-country"'), 'comparison should offer a country dropdown');
-assert.equal((app.innerHTML.match(/class="comparison-row surface-card"/g) || []).length, 0, 'comparison should not list all countries');
-callbacks.get('change')({ target: { id:'comparison-country', value:'FR_TOURISM' } });
-assert.equal((app.innerHTML.match(/class="comparison-row surface-card"/g) || []).length, 1, 'only selected country should appear');
 await visit('#/profile', 'Профиль');
 assert.ok(!app.innerHTML.includes('name="citizenship"'), 'fixed Russian citizenship should not be a form field');
 assert.ok(!app.innerHTML.includes('class="workspace-side"'), 'workspace should not duplicate the header menu');
