@@ -70,6 +70,7 @@ filters['schengen-filter'].value = 'all';
 callbacks.get('change')({ target: { id: 'schengen-filter' } });
 await visit('#/destinations/FR_TOURISM', 'Франция');
 await visit('#/compare', 'Сравнение');
+assert.ok(!app.innerHTML.includes('name="application_country"'), 'comparison must not ask for application country');
 const OriginalFormData = globalThis.FormData;
 globalThis.FormData = class {
   constructor(form) { this.fields = form.fields; }
@@ -78,7 +79,7 @@ globalThis.FormData = class {
 const compareButton = { disabled: false };
 const compareForm = {
   dataset: { form: 'compare' },
-  fields: { starts_on:'2027-06-10', ends_on:'2027-06-20', departure_city:'Москва', application_country:'RU', country_a:'FR_TOURISM', country_b:'JP_TOURISM', country_c:'' },
+  fields: { starts_on:'2027-06-10', ends_on:'2027-06-20', departure_city:'Москва', country_a:'FR_TOURISM', country_b:'JP_TOURISM', country_c:'' },
   querySelector() { return compareButton; }
 };
 await callbacks.get('submit')({ target: { closest() { return compareForm; } }, preventDefault() {} });
@@ -100,13 +101,14 @@ assert.ok(!app.innerHTML.includes('name="citizenship"'), 'fixed Russian citizens
 assert.ok(!app.innerHTML.includes('class="workspace-side"'), 'workspace should not duplicate the header menu');
 await visit('#/cases', 'Мои дела');
 await visit('#/cases/new?scenario=JP_TOURISM', 'Новое дело');
+assert.ok(!app.innerHTML.includes('name="application_country"'), 'case creation must not ask for application country');
 globalThis.FormData = class {
   constructor(form) { this.fields = form.fields; }
   *[Symbol.iterator]() { yield* Object.entries(this.fields); }
 };
 const newCaseForm = {
   dataset: { form: 'new-case' },
-  fields: { scenario_id:'JP_TOURISM', starts_on:'2027-06-10', ends_on:'2027-06-20', departure_city:'Москва', application_country:'RU', accommodation_type:'unknown', funding_type:'unknown' },
+  fields: { scenario_id:'JP_TOURISM', starts_on:'2027-06-10', ends_on:'2027-06-20', departure_city:'Москва', accommodation_type:'unknown', funding_type:'unknown' },
   querySelector() { return {disabled:false}; }
 };
 await callbacks.get('submit')({ target: { closest() { return newCaseForm; } }, preventDefault() {} });
@@ -129,6 +131,7 @@ await callbacks.get('click')({target:{closest() { return unmarkButton; }}});
 await visit(createdCaseHash, '2 из 6 обязательных требований выполнено');
 await visit('#/cases/demo-france', 'Готовность пакета');
 await visit('#/cases/demo-france/edit', 'Изменить поездку');
+assert.ok(!app.innerHTML.includes('name="application_country"'), 'case editing must not ask for application country');
 await visit('#/cases/demo-france/checklist', 'Smart Checklist');
 await visit('#/archive', 'Личный архив');
 await visit('#/archive/sample-passport', 'Поля документа');
