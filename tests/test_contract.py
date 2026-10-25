@@ -42,7 +42,8 @@ def test_openapi_covers_contract_and_excludes_private_fields(client):
                 "$ref": "#/components/schemas/ErrorResponse"
             }
             if path != "/api/v1/health":
-                expected_state = "implemented" if path.startswith("/api/v1/auth/") else "pending"
+                implemented = path.startswith(("/api/v1/auth/", "/api/v1/scenarios/")) or path in {"/api/v1/destinations", "/api/v1/profile", "/api/v1/comparisons"}
+                expected_state = "implemented" if implemented else "pending"
                 assert operation["x-implementation"] == expected_state
                 assert "503" in operation["responses"]
             public = path in {
@@ -65,15 +66,6 @@ def test_openapi_covers_contract_and_excludes_private_fields(client):
     for path, entry in schema["paths"].items():
         if "delete" in entry:
             assert "content" not in entry["delete"]["responses"]["204"]
-
-
-@pytest.mark.parametrize("path", [
-    "/api/v1/destinations", "/api/v1/scenarios/FR_TOURISM",
-])
-def test_pending_routes_never_report_success(client, path):
-    response = client.get(path)
-    assert response.status_code == 503
-    assert response.json()["error"]["code"] == "module_not_ready"
 
 
 def test_errors_do_not_echo_credentials_or_paths(client):

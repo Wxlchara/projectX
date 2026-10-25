@@ -1,0 +1,386 @@
+{
+  "name": "Новая Зеландия",
+  "scenario": {
+    "id": "NZ_TOURISM",
+    "destination_country": "NZ",
+    "version": "2026-10-25.1",
+    "entry_mode": "visa",
+    "supported_profile": {
+      "citizenship": "RU",
+      "residence_country": "RU",
+      "minimum_age": 18,
+      "purpose": "tourism",
+      "passport": "ordinary",
+      "travellers": 1,
+      "visa_application": "new; existing permissions require manual assessment"
+    },
+    "requirements": [
+      {
+        "id": "NZ.passport",
+        "title": "Действительный загранпаспорт",
+        "kind": "document",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": "passport",
+        "applies_if": null,
+        "source_ids": [
+          "NZ_VISITOR"
+        ]
+      },
+      {
+        "id": "NZ.funds",
+        "title": "Подтвердить средства на проживание и выезд",
+        "kind": "preparation_action",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": null,
+        "applies_if": {
+          "field": "trip.funding_type",
+          "op": "eq",
+          "value": "self"
+        },
+        "source_ids": [
+          "NZ_VISITOR"
+        ]
+      },
+      {
+        "id": "NZ.bank",
+        "title": "Выписка как один из допустимых финансовых документов",
+        "kind": "document",
+        "mandatory": false,
+        "readiness_contributing": false,
+        "document_type": "bank_statement",
+        "applies_if": {
+          "field": "trip.funding_type",
+          "op": "eq",
+          "value": "self"
+        },
+        "source_ids": [
+          "NZ_VISITOR"
+        ]
+      },
+      {
+        "id": "NZ.sponsor",
+        "title": "Подготовить принятого спонсора и его форму/доказательства",
+        "kind": "preparation_action",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": null,
+        "applies_if": {
+          "field": "trip.funding_type",
+          "op": "in",
+          "value": [
+            "sponsor",
+            "mixed"
+          ]
+        },
+        "source_ids": [
+          "NZ_VISITOR"
+        ]
+      },
+      {
+        "id": "NZ.insurance",
+        "title": "Рекомендованная медицинская страховка",
+        "kind": "document",
+        "mandatory": false,
+        "readiness_contributing": false,
+        "document_type": "insurance",
+        "applies_if": null,
+        "source_ids": [
+          "NZ_VISITOR"
+        ]
+      },
+      {
+        "id": "NZ.return",
+        "title": "Подтвердить выезд или отдельные средства на билет",
+        "kind": "preparation_action",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": null,
+        "applies_if": null,
+        "source_ids": [
+          "NZ_VISITOR"
+        ]
+      },
+      {
+        "id": "NZ.application",
+        "title": "Подать Visitor Visa через официальный сервис",
+        "kind": "process_action",
+        "mandatory": true,
+        "readiness_contributing": false,
+        "document_type": null,
+        "applies_if": null,
+        "source_ids": [
+          "NZ_VISITOR"
+        ]
+      }
+    ],
+    "process_stages": [
+      {
+        "id": "NZ.form",
+        "title": "Подготовить официальную анкету",
+        "event_types": [
+          "form_prepared"
+        ],
+        "source_ids": [
+          "NZ_VISITOR"
+        ]
+      },
+      {
+        "id": "NZ.submission",
+        "title": "Подать официальное заявление",
+        "event_types": [
+          "submitted"
+        ],
+        "source_ids": [
+          "NZ_VISITOR"
+        ]
+      },
+      {
+        "id": "NZ.decision",
+        "title": "Получить решение с известным исходом",
+        "event_types": [
+          "decision_received"
+        ],
+        "source_ids": [
+          "NZ_VISITOR"
+        ]
+      }
+    ],
+    "sources": [
+      {
+        "id": "NZ_VISITOR",
+        "url": "https://www.immigration.govt.nz/visas/visitor-visa/",
+        "authority": "Immigration New Zealand",
+        "locator": "Passport; funds; sponsor; insurance",
+        "checked_at": "2026-10-25T13:03:59Z",
+        "review_after": "2026-11-01",
+        "status": "source_checked",
+        "attempted_at": "2026-10-25T13:03:59Z",
+        "evidence": "Паспорт 3 месяца после выезда; средства либо спонсор; при самостоятельной оплате NZD1000/месяц или NZD400 с предоплаченным жильём. Страховка рекомендована.",
+        "notes": null
+      },
+      {
+        "id": "NZ_WAIVER",
+        "url": "https://www.immigration.govt.nz/visit/what-you-need-to-visit-new-zealand/visa-waiver-countries-and-territories/",
+        "authority": "Immigration New Zealand",
+        "locator": "Visa waiver list",
+        "checked_at": "2026-10-25T13:03:59Z",
+        "review_after": "2026-11-01",
+        "status": "source_checked",
+        "attempted_at": "2026-10-25T13:03:59Z",
+        "evidence": "РФ отсутствует в списке безвизовых паспортов; особые варианты по морскому въезду не входят в выбранный сценарий.",
+        "notes": null
+      }
+    ],
+    "data_quality": "needs_verification",
+    "entry_source_ids": [
+      "NZ_VISITOR",
+      "NZ_WAIVER"
+    ],
+    "questions": [
+      {
+        "key": "nz_accommodation_prepaid",
+        "title": "Проживание полностью предоплачено?",
+        "value_type": "boolean",
+        "source_ids": [
+          "NZ_VISITOR"
+        ]
+      }
+    ],
+    "coverage": "partial",
+    "unverified_conditions": [
+      "Обычная поездка по воздуху; исключения круиза и существующих разрешений не применяются автоматически.",
+      "Срок разрешённого пребывания, история въездов, медицинские/характерные условия и полный личный список проверяются индивидуально."
+    ]
+  },
+  "rules": [
+    {
+      "id": "NZ.passport.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "NZ_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "NZ.passport",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "NZ_VISITOR"
+      ]
+    },
+    {
+      "id": "NZ.passport.validity",
+      "version": "2026-10-25.1",
+      "scenario_id": "NZ_TOURISM",
+      "kind": "passport_validity",
+      "applies_if": null,
+      "requirement_id": "NZ.passport",
+      "parameters": {
+        "anchor": "trip.ends_on",
+        "months": 3,
+        "days": 0
+      },
+      "mandatory": true,
+      "source_ids": [
+        "NZ_VISITOR"
+      ]
+    },
+    {
+      "id": "NZ.funds.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "NZ_TOURISM",
+      "kind": "requirement",
+      "applies_if": {
+        "field": "trip.funding_type",
+        "op": "eq",
+        "value": "self"
+      },
+      "requirement_id": "NZ.funds",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "NZ_VISITOR"
+      ]
+    },
+    {
+      "id": "NZ.bank.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "NZ_TOURISM",
+      "kind": "requirement",
+      "applies_if": {
+        "field": "trip.funding_type",
+        "op": "eq",
+        "value": "self"
+      },
+      "requirement_id": "NZ.bank",
+      "parameters": {},
+      "mandatory": false,
+      "source_ids": [
+        "NZ_VISITOR"
+      ]
+    },
+    {
+      "id": "NZ.sponsor.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "NZ_TOURISM",
+      "kind": "requirement",
+      "applies_if": {
+        "field": "trip.funding_type",
+        "op": "in",
+        "value": [
+          "sponsor",
+          "mixed"
+        ]
+      },
+      "requirement_id": "NZ.sponsor",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "NZ_VISITOR"
+      ]
+    },
+    {
+      "id": "NZ.funds.prepaid",
+      "version": "2026-10-25.1",
+      "scenario_id": "NZ_TOURISM",
+      "kind": "minimum_funds",
+      "applies_if": {
+        "all": [
+          {
+            "field": "trip.funding_type",
+            "op": "eq",
+            "value": "self"
+          },
+          {
+            "field": "answers.nz_accommodation_prepaid",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "requirement_id": "NZ.funds",
+      "parameters": {
+        "minimum": {
+          "amount": "400",
+          "currency": "NZD"
+        },
+        "period": "month"
+      },
+      "mandatory": true,
+      "source_ids": [
+        "NZ_VISITOR"
+      ]
+    },
+    {
+      "id": "NZ.funds.standard",
+      "version": "2026-10-25.1",
+      "scenario_id": "NZ_TOURISM",
+      "kind": "minimum_funds",
+      "applies_if": {
+        "all": [
+          {
+            "field": "trip.funding_type",
+            "op": "eq",
+            "value": "self"
+          },
+          {
+            "field": "answers.nz_accommodation_prepaid",
+            "op": "eq",
+            "value": false
+          }
+        ]
+      },
+      "requirement_id": "NZ.funds",
+      "parameters": {
+        "minimum": {
+          "amount": "1000",
+          "currency": "NZD"
+        },
+        "period": "month"
+      },
+      "mandatory": true,
+      "source_ids": [
+        "NZ_VISITOR"
+      ]
+    },
+    {
+      "id": "NZ.insurance.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "NZ_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "NZ.insurance",
+      "parameters": {},
+      "mandatory": false,
+      "source_ids": [
+        "NZ_VISITOR"
+      ]
+    },
+    {
+      "id": "NZ.return.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "NZ_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "NZ.return",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "NZ_VISITOR"
+      ]
+    },
+    {
+      "id": "NZ.application.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "NZ_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "NZ.application",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "NZ_VISITOR"
+      ]
+    }
+  ]
+}

@@ -157,7 +157,7 @@ class ProfileInput(Model):
     passport_kind: Literal["biometric", "non_biometric"] | None = None
     passport_issued_on: date | None = None
     passport_expires_on: date | None = None
-    employment_status: str | None = None
+    employment_status: Literal["employed", "self_employed", "student", "retired", "unemployed", "other"] | None = None
     existing_permissions: list[ExistingPermission] | None = None
 
 
@@ -173,8 +173,8 @@ class TripInput(Model):
     ends_on: date | None = None
     departure_city: str | None = None
     application_country: CountryCode | None = None
-    accommodation_type: str | None = None
-    funding_type: str | None = None
+    accommodation_type: Literal["hotel", "host", "rental", "other"] | None = None
+    funding_type: Literal["self", "sponsor", "mixed", "other"] | None = None
 
     @model_validator(mode="after")
     def ordered_dates(self):
@@ -190,6 +190,19 @@ class Source(Model):
     checked_at: AwareDatetime | None = None
     review_after: date | None = None
     status: DataQuality = DataQuality.NEEDS_VERIFICATION
+    attempted_at: AwareDatetime | None = None
+    locator: str | None = None
+    evidence: str | None = None
+    notes: str | None = None
+
+    @model_validator(mode="after")
+    def checked_source_has_evidence(self):
+        if self.status == DataQuality.SOURCE_CHECKED:
+            if self.checked_at is None or self.review_after is None or not self.evidence:
+                raise ValueError("Checked sources need checked_at, review_after and evidence")
+        if self.checked_at and self.review_after and self.review_after < self.checked_at.date():
+            raise ValueError("review_after precedes checked_at")
+        return self
 
 
 class RuleRef(Model):
@@ -258,6 +271,36 @@ class ProcessStageTemplate(Model):
     title: str
     event_types: list[EventType]
     applies_if: Condition | None = None
+    source_ids: list[str] = PydanticField(default_factory=list)
+
+
+class Question(Model):
+    key: Annotated[str, PydanticField(pattern=r"^[a-z][a-z0-9_]{0,63}$")]
+    title: str
+    value_type: Literal["boolean", "integer", "date", "enum", "stays"]
+    choices: list[str] = PydanticField(default_factory=list)
+    minimum: Annotated[int, PydanticField(strict=True)] | None = None
+    maximum: Annotated[int, PydanticField(strict=True)] | None = None
+    source_ids: list[str]
+
+    @model_validator(mode="after")
+    def valid_constraints(self):
+        if self.value_type == "enum":
+            if not self.choices or len(self.choices) != len(set(self.choices)):
+                raise ValueError("Enum questions require unique choices")
+        elif self.choices:
+            raise ValueError("Only enum questions have choices")
+        if self.value_type != "integer" and (self.minimum is not None or self.maximum is not None):
+            raise ValueError("Only integer questions have bounds")
+        if self.minimum is not None and self.maximum is not None and self.minimum > self.maximum:
+            raise ValueError("Question bounds are reversed")
+        return self
+
+
+class AppliedRequirement(Requirement):
+    applicability: Applicability
+    explanation: str
+    rule_refs: list[RuleRef] = PydanticField(default_factory=list)
 
 
 class Scenario(Model):
@@ -270,6 +313,10 @@ class Scenario(Model):
     process_stages: list[ProcessStageTemplate]
     sources: list[Source]
     data_quality: DataQuality = DataQuality.NEEDS_VERIFICATION
+    entry_source_ids: list[str] = PydanticField(default_factory=list)
+    questions: list[Question] = PydanticField(default_factory=list)
+    coverage: Literal["partial", "complete"] = "partial"
+    unverified_conditions: list[str] = PydanticField(default_factory=list)
 
 
 class Ruleset(Model):
@@ -288,10 +335,11 @@ class Destination(Model):
 
 
 class ApplicabilityResult(Model):
-    status: Literal["applicable", "needs_input", "unsupported_profile", "needs_verification"]
-    requirements: list[Requirement]
+    status: Literal["applicable", "blocked", "needs_input", "unsupported_profile", "needs_verification"]
+    requirements: list[AppliedRequirement]
     barriers: list[Finding]
     missing_answers: list[str]
+    unknown_conditions: list[Finding] = PydanticField(default_factory=list)
 
 
 class ComparisonInput(Model):
@@ -301,11 +349,14 @@ class ComparisonInput(Model):
 
 class DestinationComparison(Model):
     destination: Destination
+    profile_revision: Revision
     applicability: ApplicabilityResult
     required_documents: int | None = None
     external_actions: list[str]
     route_notes: list[str]
     unknown_conditions: list[str]
+    known_required_documents: int = 0
+    requirements_complete: bool = False
 
 
 class Field(Model):

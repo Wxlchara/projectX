@@ -1,0 +1,339 @@
+{
+  "name": "Индия",
+  "scenario": {
+    "id": "IN_TOURISM",
+    "destination_country": "IN",
+    "version": "2026-10-25.1",
+    "entry_mode": "evisa",
+    "supported_profile": {
+      "citizenship": "RU",
+      "residence_country": "RU",
+      "minimum_age": 18,
+      "purpose": "tourism",
+      "passport": "ordinary",
+      "travellers": 1,
+      "visa_application": "new; existing permissions require manual assessment"
+    },
+    "requirements": [
+      {
+        "id": "IN.passport",
+        "title": "Действительный загранпаспорт",
+        "kind": "document",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": "passport",
+        "applies_if": null,
+        "source_ids": [
+          "IN_EVISA"
+        ]
+      },
+      {
+        "id": "IN.photo",
+        "title": "Цифровое фото и скан страницы паспорта по формату портала",
+        "kind": "preparation_action",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": null,
+        "applies_if": null,
+        "source_ids": [
+          "IN_EVISA"
+        ]
+      },
+      {
+        "id": "IN.funds_return",
+        "title": "Подтвердить средства и обратный/дальнейший билет",
+        "kind": "preparation_action",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": null,
+        "applies_if": null,
+        "source_ids": [
+          "IN_EVISA"
+        ]
+      },
+      {
+        "id": "IN.fee",
+        "title": "Подать заявление и оплатить на официальном портале",
+        "kind": "process_action",
+        "mandatory": true,
+        "readiness_contributing": false,
+        "document_type": null,
+        "applies_if": null,
+        "source_ids": [
+          "IN_EVISA"
+        ]
+      },
+      {
+        "id": "IN.eta",
+        "title": "Получить и распечатать ETA до поездки",
+        "kind": "preparation_action",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": null,
+        "applies_if": null,
+        "source_ids": [
+          "IN_EVISA"
+        ]
+      }
+    ],
+    "process_stages": [
+      {
+        "id": "IN.form",
+        "title": "Подготовить официальную анкету",
+        "event_types": [
+          "form_prepared"
+        ],
+        "source_ids": [
+          "IN_EVISA"
+        ]
+      },
+      {
+        "id": "IN.submission",
+        "title": "Подать официальное заявление",
+        "event_types": [
+          "submitted"
+        ],
+        "source_ids": [
+          "IN_EVISA"
+        ]
+      },
+      {
+        "id": "IN.decision",
+        "title": "Получить решение с известным исходом",
+        "event_types": [
+          "decision_received"
+        ],
+        "source_ids": [
+          "IN_EVISA"
+        ]
+      }
+    ],
+    "sources": [
+      {
+        "id": "IN_EVISA",
+        "url": "https://www.indianvisaonline.gov.in/evisa/",
+        "authority": "Government of India",
+        "locator": "Eligibility; general instructions; Q1",
+        "checked_at": "2026-10-25T13:03:59Z",
+        "review_after": "2026-11-01",
+        "status": "source_checked",
+        "attempted_at": "2026-10-25T13:03:59Z",
+        "evidence": "РФ в списке e-Visa; паспорт 6 месяцев на дату обращения и 2 страницы, фото/скан, средства и выезд, ограничения происхождения/пункта въезда.",
+        "notes": null
+      }
+    ],
+    "data_quality": "needs_verification",
+    "entry_source_ids": [
+      "IN_EVISA"
+    ],
+    "questions": [
+      {
+        "key": "application_date",
+        "title": "Планируемая дата обращения",
+        "value_type": "date",
+        "source_ids": [
+          "IN_EVISA"
+        ]
+      },
+      {
+        "key": "blank_passport_pages",
+        "title": "Количество свободных визовых страниц",
+        "value_type": "integer",
+        "source_ids": [
+          "IN_EVISA"
+        ],
+        "minimum": 0,
+        "maximum": 100
+      },
+      {
+        "key": "in_pakistani_origin",
+        "title": "Есть пакистанское происхождение в смысле условий портала?",
+        "value_type": "boolean",
+        "source_ids": [
+          "IN_EVISA"
+        ]
+      },
+      {
+        "key": "in_authorised_entry",
+        "title": "Выбран пункт въезда из официального списка для e-Visa?",
+        "value_type": "boolean",
+        "source_ids": [
+          "IN_EVISA"
+        ]
+      }
+    ],
+    "coverage": "partial",
+    "unverified_conditions": [
+      "Выбрана туристическая e-Visa на 30 дней; иные варианты требуют другого набора условий.",
+      "Перечень пунктов въезда, оплата, e-Arrival card и точные сроки подачи перепроверяются перед обращением."
+    ]
+  },
+  "rules": [
+    {
+      "id": "IN.passport.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "IN_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "IN.passport",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "IN_EVISA"
+      ]
+    },
+    {
+      "id": "IN.passport.validity",
+      "version": "2026-10-25.1",
+      "scenario_id": "IN_TOURISM",
+      "kind": "passport_validity",
+      "applies_if": null,
+      "requirement_id": "IN.passport",
+      "parameters": {
+        "anchor": "answers.application_date",
+        "months": 6,
+        "days": 0
+      },
+      "mandatory": true,
+      "source_ids": [
+        "IN_EVISA"
+      ]
+    },
+    {
+      "id": "IN.passport.pages",
+      "version": "2026-10-25.1",
+      "scenario_id": "IN_TOURISM",
+      "kind": "assertion",
+      "applies_if": null,
+      "requirement_id": null,
+      "parameters": {
+        "condition": {
+          "field": "answers.blank_passport_pages",
+          "op": "gte",
+          "value": 2
+        },
+        "expected": true,
+        "message": "Для e-Visa нужны две свободные страницы.",
+        "next_action": "Подготовьте паспорт с подходящим числом страниц.",
+        "severity": "blocking"
+      },
+      "mandatory": true,
+      "source_ids": [
+        "IN_EVISA"
+      ]
+    },
+    {
+      "id": "IN.origin",
+      "version": "2026-10-25.1",
+      "scenario_id": "IN_TOURISM",
+      "kind": "assertion",
+      "applies_if": null,
+      "requirement_id": null,
+      "parameters": {
+        "condition": {
+          "field": "answers.in_pakistani_origin",
+          "op": "eq",
+          "value": true
+        },
+        "expected": false,
+        "message": "Выбранная e-Visa не покрывает указанное происхождение.",
+        "next_action": "Проверьте обычную визу через представительство Индии.",
+        "severity": "blocking"
+      },
+      "mandatory": true,
+      "source_ids": [
+        "IN_EVISA"
+      ]
+    },
+    {
+      "id": "IN.entry_port",
+      "version": "2026-10-25.1",
+      "scenario_id": "IN_TOURISM",
+      "kind": "assertion",
+      "applies_if": null,
+      "requirement_id": null,
+      "parameters": {
+        "condition": {
+          "field": "answers.in_authorised_entry",
+          "op": "eq",
+          "value": true
+        },
+        "expected": true,
+        "message": "Выбранный пункт не подтверждён как разрешённый для e-Visa.",
+        "next_action": "Сопоставьте аэропорт/порт с официальным перечнем.",
+        "severity": "blocking"
+      },
+      "mandatory": true,
+      "source_ids": [
+        "IN_EVISA"
+      ]
+    },
+    {
+      "id": "IN.stay",
+      "version": "2026-10-25.1",
+      "scenario_id": "IN_TOURISM",
+      "kind": "stay_limit",
+      "applies_if": null,
+      "requirement_id": null,
+      "parameters": {
+        "days": 30
+      },
+      "mandatory": true,
+      "source_ids": [
+        "IN_EVISA"
+      ]
+    },
+    {
+      "id": "IN.photo.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "IN_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "IN.photo",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "IN_EVISA"
+      ]
+    },
+    {
+      "id": "IN.funds_return.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "IN_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "IN.funds_return",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "IN_EVISA"
+      ]
+    },
+    {
+      "id": "IN.fee.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "IN_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "IN.fee",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "IN_EVISA"
+      ]
+    },
+    {
+      "id": "IN.eta.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "IN_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "IN.eta",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "IN_EVISA"
+      ]
+    }
+  ]
+}

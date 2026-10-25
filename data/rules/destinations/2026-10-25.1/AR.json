@@ -1,0 +1,192 @@
+{
+  "name": "Аргентина",
+  "scenario": {
+    "id": "AR_TOURISM",
+    "destination_country": "AR",
+    "version": "2026-10-25.1",
+    "entry_mode": "visa_free",
+    "supported_profile": {
+      "citizenship": "RU",
+      "residence_country": "RU",
+      "minimum_age": 18,
+      "purpose": "tourism",
+      "passport": "ordinary",
+      "travellers": 1,
+      "visa_application": "new; existing permissions require manual assessment"
+    },
+    "requirements": [
+      {
+        "id": "AR.passport",
+        "title": "Действительный загранпаспорт",
+        "kind": "document",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": "passport",
+        "applies_if": null,
+        "source_ids": [
+          "AR_TREATY"
+        ]
+      },
+      {
+        "id": "AR.insurance",
+        "title": "Проверить применимость медицинского страхования и декларации",
+        "kind": "document",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": "insurance",
+        "applies_if": null,
+        "source_ids": [
+          "AR_IMPLEMENTATION"
+        ]
+      }
+    ],
+    "process_stages": [
+      {
+        "id": "AR.entry",
+        "title": "Завершить подготовку ко въезду",
+        "event_types": [
+          "entry_preparation_completed"
+        ],
+        "source_ids": [
+          "AR_TREATY"
+        ]
+      }
+    ],
+    "sources": [
+      {
+        "id": "AR_HEALTH_LAW",
+        "url": "https://www.argentina.gob.ar/normativa/nacional/decreto-366-2025-413297/texto",
+        "authority": "Argentina, Poder Ejecutivo Nacional",
+        "locator": "Arts.9 and 33 (34, 123 bis)",
+        "checked_at": "2026-10-25T13:03:59Z",
+        "review_after": "2026-11-01",
+        "status": "source_checked",
+        "attempted_at": "2026-10-25T13:03:59Z",
+        "evidence": "Предусмотрена декларация цели и медицинского страхования; требование декларации зависит от регламента её исполнения.",
+        "notes": null
+      },
+      {
+        "id": "AR_IMPLEMENTATION",
+        "url": "https://esuec.cancilleria.gob.ar/es/node/80607",
+        "authority": "Посольство Аргентины в Швеции",
+        "locator": "Requisitos de ingreso y permanencia",
+        "checked_at": null,
+        "review_after": null,
+        "status": "needs_verification",
+        "attempted_at": "2026-10-25T13:03:59Z",
+        "evidence": null,
+        "notes": "Страница открыта: сообщает об отсутствии порядка исполнения. Его актуальное введение и практика выбранного въезда на дату поездки не подтверждены."
+      },
+      {
+        "id": "AR_TREATY",
+        "url": "https://tratados.cancilleria.gob.ar/tratado_archivo.php?caso=pdf&id=mqGkng%3D%3D&tipo=kg%3D%3D&tratados_id=kp2mmpo%3D",
+        "authority": "МИД Аргентины, база договоров",
+        "locator": "Соглашение РФ–Аргентина, статья 1",
+        "checked_at": "2026-10-25T13:03:59Z",
+        "review_after": "2026-11-01",
+        "status": "source_checked",
+        "attempted_at": "2026-10-25T13:03:59Z",
+        "evidence": "Действительные обычные паспорта: безвизово до 90 дней в каждом 180-дневном периоде от первого въезда; трудовая деятельность отдельно.",
+        "notes": null
+      }
+    ],
+    "data_quality": "needs_verification",
+    "entry_source_ids": [
+      "AR_TREATY"
+    ],
+    "questions": [
+      {
+        "key": "ar_prior_stays",
+        "title": "Предыдущие пребывания: даты въезда и выезда; [] означает, что их не было",
+        "value_type": "stays",
+        "source_ids": [
+          "AR_TREATY"
+        ]
+      }
+    ],
+    "coverage": "partial",
+    "unverified_conditions": [
+      "Повторные поездки и начало 180-дневного периода требуют ручного сопоставления с соглашением, а не произвольного сложения дней.",
+      "Полный текущий пограничный перечень и маршрут требуют повторной проверки; отсутствие визы не означает разрешённый въезд.",
+      "Декларация/страхование зависят от введения порядка исполнения DNU 366/2025; текущая практика выбранного въезда не подтверждена."
+    ]
+  },
+  "rules": [
+    {
+      "id": "AR.passport.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "AR_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "AR.passport",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "AR_TREATY"
+      ]
+    },
+    {
+      "id": "AR.passport.validity",
+      "version": "2026-10-25.1",
+      "scenario_id": "AR_TOURISM",
+      "kind": "passport_validity",
+      "applies_if": null,
+      "requirement_id": "AR.passport",
+      "parameters": {
+        "anchor": "trip.starts_on",
+        "months": 0,
+        "days": 0
+      },
+      "mandatory": true,
+      "source_ids": [
+        "AR_TREATY"
+      ]
+    },
+    {
+      "id": "AR.stay",
+      "version": "2026-10-25.1",
+      "scenario_id": "AR_TOURISM",
+      "kind": "stay_limit",
+      "applies_if": null,
+      "requirement_id": null,
+      "parameters": {
+        "days": 90,
+        "window_days": 180,
+        "history_question": "ar_prior_stays",
+        "history_mode": "manual"
+      },
+      "mandatory": true,
+      "source_ids": [
+        "AR_TREATY"
+      ]
+    },
+    {
+      "id": "AR.insurance.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "AR_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "AR.insurance",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "AR_IMPLEMENTATION"
+      ]
+    },
+    {
+      "id": "AR.insurance.coverage",
+      "version": "2026-10-25.1",
+      "scenario_id": "AR_TOURISM",
+      "kind": "insurance_coverage",
+      "applies_if": null,
+      "requirement_id": "AR.insurance",
+      "parameters": {
+        "territory": "AR"
+      },
+      "mandatory": true,
+      "source_ids": [
+        "AR_IMPLEMENTATION"
+      ]
+    }
+  ]
+}

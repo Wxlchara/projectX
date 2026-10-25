@@ -1,7 +1,9 @@
 # VisaPilot backend
 
-Локальный прототип с вымышленными документами. Реализованы **пакеты 1 и 11**:
-запуск, SQLite, общие модели, HTTP-контракт и аккаунты с cookie-сессиями/CSRF.
+Локальный прототип с вымышленными документами. Реализованы **пакеты 1, 11, 2 и 3**:
+запуск, SQLite, общие модели, аккаунты с cookie-сессиями/CSRF, реестр 12 направлений,
+личный профиль с ревизиями и сравнение применимых требований/формальных барьеров.
+Покрытие правил частичное; источники и неизвестные условия отображаются явно.
 Остальные предметные маршруты после входа отвечают `503 module_not_ready`,
 пока владельцы не подключат свои реализации.
 
@@ -26,6 +28,7 @@ python -m pytest -q
 python -m pip check
 python -m app.common.export_openapi --check
 python tests/auth_http_smoke.py
+python tests/rules_profile_http_smoke.py
 ```
 
 Для изменения схем обновите снимок: `python -m app.common.export_openapi`.
@@ -33,4 +36,6 @@ python tests/auth_http_smoke.py
 
 [Передача Ване и frontend, модели, хранение и ограничения](docs/backend-handoff.md).
 [Аккаунты: Origin, cookie, CSRF и проверка владельца](docs/auth-handoff.md).
+[Правила: версии, источники и пределы покрытия](docs/rules-handoff.md).
+[Профиль и сравнение: API, вопросы и инвалидация](docs/profile-handoff.md).
 [Продуктовая документация и распределение пакетов](docs/README.md).

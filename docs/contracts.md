@@ -158,3 +158,53 @@ require_owned_case_document проверяют владельца внутри �
 чужой и отсутствующий ресурс дают одинаковые 404. HTTP-модули 3–9 должны
 использовать эти проверки до чтения/изменения/скачивания.
 Примеры и границы интеграционной проверки: [auth-handoff.md](auth-handoff.md).
+
+## Конкретизация пакета 2
+
+GET /destinations и GET /scenarios/{scenario_id} реализованы для 12 направлений.
+Source дополнен attempted_at, locator, evidence и notes. source_checked требует
+фактических checked_at, review_after и evidence; неудачная попытка не становится
+датой юридической проверки. Просроченный источник и зависимый от него режим
+въезда читаются как needs_verification. Scenario дополнен entry_source_ids,
+questions, coverage и unverified_conditions. Все текущие сценарии partial.
+
+Question описывает только определённый ключ answers, его тип/ограничения и
+источники. AppliedRequirement расширяет Requirement применимостью,
+explanation и rule_refs для пакета 3. Занятость: employed/self_employed/student/
+retired/unemployed/other; финансирование: self/sponsor/mixed/other; размещение:
+hotel/host/rental/other, каждый ответ также допускает null.
+Реестр/параметры проверок, источники и порядок обновления:
+[rules-handoff.md](rules-handoff.md). Официальная полнота не подтверждается
+одним наличием карточки страны или работающим endpoint.
+
+## Конкретизация пакета 3
+
+GET /profile возвращает профиль с id/revision. PUT /profile принимает только
+ProfileInput и полностью заменяет поля; отсутствующее становится null.
+Повтор идентичного ввода сохраняет revision, изменение увеличивает её.
+В одной транзакции собственные cases получают stale/profile_changed и
+projection_json=NULL, связанные check_results/routes/letters — stale=1.
+Старые подписи, подтверждения с их подписями, документы, события и правки
+писем сохраняются до явного пересчёта/сопоставления с новой ревизией.
+
+POST /comparisons использует текущий профиль из сессии и возвращает
+Items[DestinationComparison] для всех 12 направлений, без сортировки по
+«лёгкости». Добавлено обязательное profile_revision. known_required_documents
+считает известные применимые обязательные документы; required_documents
+остаётся null при неполном/неизвестном списке, requirements_complete=false.
+external_actions, route_notes и unknown_conditions — отдельные факторы.
+Профиль и сравнения имеют Cache-Control: no-store; PUT/POST требуют CSRF.
+
+ApplicabilityResult.status: applicable/blocked/needs_input/unsupported_profile/
+needs_verification. Неподдерживаемая или неизвестная базовая область не
+получает персональный список требований. Состав требований определяется
+правилами, не AI. Неизвестное обязательное условие не становится pass;
+источник без подтверждения не доказывает барьер. Заявленная применимость
+не заменяет проверку документных фактов и готовность дела.
+
+answers принимает только типизированные questions выбранного сценария;
+в /comparisons — объединение questions активного каталога. Неизвестный ключ
+или неверный тип даёт 422 invalid_answers. Детали, JSON-примеры, дополнительные
+вопросы и порт evaluate_applicability: [profile-handoff.md](profile-handoff.md).
+Внутренние get_scenario/get_sources допускают keyword version для чтения
+сохранённой версии вместе с get_ruleset(version).

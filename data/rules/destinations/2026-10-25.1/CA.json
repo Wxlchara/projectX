@@ -1,0 +1,312 @@
+{
+  "name": "Канада",
+  "scenario": {
+    "id": "CA_TOURISM",
+    "destination_country": "CA",
+    "version": "2026-10-25.1",
+    "entry_mode": "visa",
+    "supported_profile": {
+      "citizenship": "RU",
+      "residence_country": "RU",
+      "minimum_age": 18,
+      "purpose": "tourism",
+      "passport": "ordinary",
+      "travellers": 1,
+      "visa_application": "new; existing permissions require manual assessment"
+    },
+    "requirements": [
+      {
+        "id": "CA.passport",
+        "title": "Действительный загранпаспорт",
+        "kind": "document",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": "passport",
+        "applies_if": null,
+        "source_ids": [
+          "CA_ELIGIBILITY"
+        ]
+      },
+      {
+        "id": "CA.funds_ties",
+        "title": "Подтвердить средства, временную цель и возвращение",
+        "kind": "preparation_action",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": null,
+        "applies_if": null,
+        "source_ids": [
+          "CA_ELIGIBILITY"
+        ]
+      },
+      {
+        "id": "CA.bank",
+        "title": "Выписка как возможное подтверждение средств",
+        "kind": "document",
+        "mandatory": false,
+        "readiness_contributing": false,
+        "document_type": "bank_statement",
+        "applies_if": null,
+        "source_ids": [
+          "CA_ELIGIBILITY"
+        ]
+      },
+      {
+        "id": "CA.personal_list",
+        "title": "Выполнить персональный список официального портала",
+        "kind": "preparation_action",
+        "mandatory": true,
+        "readiness_contributing": true,
+        "document_type": null,
+        "applies_if": null,
+        "source_ids": [
+          "CA_APPLY"
+        ]
+      },
+      {
+        "id": "CA.application",
+        "title": "Подать заявление через IRCC",
+        "kind": "process_action",
+        "mandatory": true,
+        "readiness_contributing": false,
+        "document_type": null,
+        "applies_if": null,
+        "source_ids": [
+          "CA_APPLY"
+        ]
+      },
+      {
+        "id": "CA.biometrics",
+        "title": "Записаться и сдать биометрию по полученной инструкции",
+        "kind": "process_action",
+        "mandatory": true,
+        "readiness_contributing": false,
+        "document_type": null,
+        "applies_if": {
+          "field": "answers.ca_biometrics_requested",
+          "op": "eq",
+          "value": true
+        },
+        "source_ids": [
+          "CA_APPLY"
+        ]
+      }
+    ],
+    "process_stages": [
+      {
+        "id": "CA.form",
+        "title": "Подготовить официальную анкету",
+        "event_types": [
+          "form_prepared"
+        ],
+        "source_ids": [
+          "CA_APPLY"
+        ]
+      },
+      {
+        "id": "CA.submission",
+        "title": "Подать официальное заявление",
+        "event_types": [
+          "submitted"
+        ],
+        "source_ids": [
+          "CA_APPLY"
+        ]
+      },
+      {
+        "id": "CA.decision",
+        "title": "Получить решение с известным исходом",
+        "event_types": [
+          "decision_received"
+        ],
+        "source_ids": [
+          "CA_APPLY"
+        ]
+      },
+      {
+        "id": "CA.passport_return",
+        "title": "Получить паспорт независимо от исхода",
+        "event_types": [
+          "passport_returned"
+        ],
+        "source_ids": [
+          "CA_APPLY"
+        ]
+      }
+    ],
+    "sources": [
+      {
+        "id": "CA_APPLY",
+        "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada/apply-visitor-visa.html",
+        "authority": "IRCC, Canada",
+        "locator": "Required documents; online checklist; biometrics",
+        "checked_at": "2026-10-25T13:03:59Z",
+        "review_after": "2026-11-01",
+        "status": "source_checked",
+        "attempted_at": "2026-10-25T13:03:59Z",
+        "evidence": "Портал формирует личный список; копия паспорта, рекомендация запаса 6 месяцев с поездки; биометрия по инструкции после заявления.",
+        "notes": null
+      },
+      {
+        "id": "CA_ELIGIBILITY",
+        "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada/eligibility.html",
+        "authority": "IRCC, Canada",
+        "locator": "Who can get a visa",
+        "checked_at": "2026-10-25T13:03:59Z",
+        "review_after": "2026-11-01",
+        "status": "source_checked",
+        "attempted_at": "2026-10-25T13:03:59Z",
+        "evidence": "Требуются действительный документ, средства, временная цель и намерение выехать; сумма зависит от срока и проживания.",
+        "notes": null
+      },
+      {
+        "id": "CA_ENTRY",
+        "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada/entry-requirements-country.html",
+        "authority": "IRCC, Canada",
+        "locator": "Travellers who need a visa",
+        "checked_at": "2026-10-25T13:03:59Z",
+        "review_after": "2026-11-01",
+        "status": "source_checked",
+        "attempted_at": "2026-10-25T13:03:59Z",
+        "evidence": "Россия присутствует в перечне гражданств с визовым требованием для данного случая.",
+        "notes": null
+      }
+    ],
+    "data_quality": "needs_verification",
+    "entry_source_ids": [
+      "CA_ENTRY"
+    ],
+    "questions": [
+      {
+        "key": "ca_biometrics_requested",
+        "title": "Получена инструкция IRCC о биометрии?",
+        "value_type": "boolean",
+        "source_ids": [
+          "CA_APPLY"
+        ]
+      }
+    ],
+    "coverage": "partial",
+    "unverified_conditions": [
+      "Итоговый перечень и место сдачи биометрии выдаёт IRCC; медицинские, персональные ограничения и история разрешений не автоматизированы."
+    ]
+  },
+  "rules": [
+    {
+      "id": "CA.passport.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "CA_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "CA.passport",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "CA_ELIGIBILITY"
+      ]
+    },
+    {
+      "id": "CA.passport.validity",
+      "version": "2026-10-25.1",
+      "scenario_id": "CA_TOURISM",
+      "kind": "passport_validity",
+      "applies_if": null,
+      "requirement_id": "CA.passport",
+      "parameters": {
+        "anchor": "trip.starts_on",
+        "months": 0,
+        "days": 0
+      },
+      "mandatory": true,
+      "source_ids": [
+        "CA_ELIGIBILITY"
+      ]
+    },
+    {
+      "id": "CA.passport.advisory",
+      "version": "2026-10-25.1",
+      "scenario_id": "CA_TOURISM",
+      "kind": "passport_validity",
+      "applies_if": null,
+      "requirement_id": "CA.passport",
+      "parameters": {
+        "anchor": "trip.starts_on",
+        "months": 6,
+        "severity": "verify"
+      },
+      "mandatory": true,
+      "source_ids": [
+        "CA_APPLY"
+      ]
+    },
+    {
+      "id": "CA.funds_ties.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "CA_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "CA.funds_ties",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "CA_ELIGIBILITY"
+      ]
+    },
+    {
+      "id": "CA.bank.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "CA_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "CA.bank",
+      "parameters": {},
+      "mandatory": false,
+      "source_ids": [
+        "CA_ELIGIBILITY"
+      ]
+    },
+    {
+      "id": "CA.personal_list.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "CA_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "CA.personal_list",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "CA_APPLY"
+      ]
+    },
+    {
+      "id": "CA.application.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "CA_TOURISM",
+      "kind": "requirement",
+      "applies_if": null,
+      "requirement_id": "CA.application",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "CA_APPLY"
+      ]
+    },
+    {
+      "id": "CA.biometrics.required",
+      "version": "2026-10-25.1",
+      "scenario_id": "CA_TOURISM",
+      "kind": "requirement",
+      "applies_if": {
+        "field": "answers.ca_biometrics_requested",
+        "op": "eq",
+        "value": true
+      },
+      "requirement_id": "CA.biometrics",
+      "parameters": {},
+      "mandatory": true,
+      "source_ids": [
+        "CA_APPLY"
+      ]
+    }
+  ]
+}

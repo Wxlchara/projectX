@@ -16,6 +16,11 @@ from app.common.db import SCHEMA_VERSION, Database
 from app.common.errors import AppError, ERROR_RESPONSES, install_error_handlers
 from app.common.interfaces import AuthGateway
 from app.common.models import Health
+from app.eligibility.service import EligibilityService
+from app.profile.router import router as profile_router
+from app.profile.service import ProfileService
+from app.rules.registry import FileRuleRegistry
+from app.rules.router import router as rules_router
 
 API_PREFIX = "/api/v1"
 
@@ -32,7 +37,10 @@ def create_app(
     if set(installed) - PACKAGE_NAMES.keys():
         raise ValueError("Unknown feature package")
     installed.setdefault(11, auth_router)
+    installed.setdefault(2, rules_router)
+    installed.setdefault(3, profile_router)
     authentication = AuthService(database, config)
+    registry = FileRuleRegistry()
 
     @asynccontextmanager
     async def lifespan(application: FastAPI):
@@ -47,7 +55,7 @@ def create_app(
     application = FastAPI(
         title="VisaPilot API", version="0.1.0", lifespan=lifespan,
         description=(
-            "Локальное демо на вымышленных документах. Работают health и аккаунты/сессии (пакеты 1/11); "
+            "Локальное демо на вымышленных документах. Работают health, аккаунты/сессии, реестр 12 направлений и профиль/сравнения (пакеты 1/11/2/3); "
             "остальные маршруты документируют контракт и отвечают 503 после входа до реализации. "
             "Frontend использует один origin и credentials=include."
         ),
@@ -56,6 +64,9 @@ def create_app(
     application.state.settings = config
     application.state.database = database
     application.state.auth_service = authentication
+    application.state.rule_registry = registry
+    application.state.profile_service = ProfileService(database)
+    application.state.applicability_evaluator = EligibilityService(registry)
     application.state.auth_gateway = auth_gateway if auth_gateway is not None else authentication
     application.state.processing = ProcessingGuards()
     install_error_handlers(application)

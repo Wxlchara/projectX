@@ -83,7 +83,7 @@
           },
           "requirements": {
             "items": {
-              "$ref": "#/components/schemas/Requirement"
+              "$ref": "#/components/schemas/AppliedRequirement"
             },
             "title": "Requirements",
             "type": "array"
@@ -91,12 +91,20 @@
           "status": {
             "enum": [
               "applicable",
+              "blocked",
               "needs_input",
               "unsupported_profile",
               "needs_verification"
             ],
             "title": "Status",
             "type": "string"
+          },
+          "unknown_conditions": {
+            "items": {
+              "$ref": "#/components/schemas/Finding"
+            },
+            "title": "Unknown Conditions",
+            "type": "array"
           }
         },
         "required": [
@@ -138,6 +146,14 @@
           "employment_status": {
             "anyOf": [
               {
+                "enum": [
+                  "employed",
+                  "self_employed",
+                  "student",
+                  "retired",
+                  "unemployed",
+                  "other"
+                ],
                 "type": "string"
               },
               {
@@ -271,6 +287,89 @@
           "revision"
         ],
         "title": "ApplicantProfile",
+        "type": "object"
+      },
+      "AppliedRequirement": {
+        "additionalProperties": false,
+        "properties": {
+          "applicability": {
+            "$ref": "#/components/schemas/Applicability"
+          },
+          "applies_if": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ComparisonCondition"
+              },
+              {
+                "$ref": "#/components/schemas/AllCondition"
+              },
+              {
+                "$ref": "#/components/schemas/AnyCondition"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Applies If"
+          },
+          "document_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DocumentType"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "explanation": {
+            "title": "Explanation",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/ChecklistKind"
+          },
+          "mandatory": {
+            "title": "Mandatory",
+            "type": "boolean"
+          },
+          "readiness_contributing": {
+            "title": "Readiness Contributing",
+            "type": "boolean"
+          },
+          "rule_refs": {
+            "items": {
+              "$ref": "#/components/schemas/RuleRef"
+            },
+            "title": "Rule Refs",
+            "type": "array"
+          },
+          "source_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Source Ids",
+            "type": "array"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "kind",
+          "mandatory",
+          "readiness_contributing",
+          "applicability",
+          "explanation"
+        ],
+        "title": "AppliedRequirement",
         "type": "object"
       },
       "Body_upload_document_api_v1_documents_post": {
@@ -763,6 +862,16 @@
             "title": "External Actions",
             "type": "array"
           },
+          "known_required_documents": {
+            "default": 0,
+            "title": "Known Required Documents",
+            "type": "integer"
+          },
+          "profile_revision": {
+            "minimum": 1.0,
+            "title": "Profile Revision",
+            "type": "integer"
+          },
           "required_documents": {
             "anyOf": [
               {
@@ -773,6 +882,11 @@
               }
             ],
             "title": "Required Documents"
+          },
+          "requirements_complete": {
+            "default": false,
+            "title": "Requirements Complete",
+            "type": "boolean"
           },
           "route_notes": {
             "items": {
@@ -791,6 +905,7 @@
         },
         "required": [
           "destination",
+          "profile_revision",
           "applicability",
           "external_actions",
           "route_notes",
@@ -1777,6 +1892,13 @@
             "title": "Id",
             "type": "string"
           },
+          "source_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Source Ids",
+            "type": "array"
+          },
           "title": {
             "title": "Title",
             "type": "string"
@@ -1820,6 +1942,14 @@
           "employment_status": {
             "anyOf": [
               {
+                "enum": [
+                  "employed",
+                  "self_employed",
+                  "student",
+                  "retired",
+                  "unemployed",
+                  "other"
+                ],
                 "type": "string"
               },
               {
@@ -1939,6 +2069,75 @@
           }
         },
         "title": "ProfileInput",
+        "type": "object"
+      },
+      "Question": {
+        "additionalProperties": false,
+        "properties": {
+          "choices": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Choices",
+            "type": "array"
+          },
+          "key": {
+            "pattern": "^[a-z][a-z0-9_]{0,63}$",
+            "title": "Key",
+            "type": "string"
+          },
+          "maximum": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Maximum"
+          },
+          "minimum": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Minimum"
+          },
+          "source_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Source Ids",
+            "type": "array"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "value_type": {
+            "enum": [
+              "boolean",
+              "integer",
+              "date",
+              "enum",
+              "stays"
+            ],
+            "title": "Value Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "title",
+          "value_type",
+          "source_ids"
+        ],
+        "title": "Question",
         "type": "object"
       },
       "Readiness": {
@@ -2240,6 +2439,15 @@
       "Scenario": {
         "additionalProperties": false,
         "properties": {
+          "coverage": {
+            "default": "partial",
+            "enum": [
+              "partial",
+              "complete"
+            ],
+            "title": "Coverage",
+            "type": "string"
+          },
           "data_quality": {
             "$ref": "#/components/schemas/DataQuality",
             "default": "needs_verification"
@@ -2253,6 +2461,13 @@
             "$ref": "#/components/schemas/EntryMode",
             "default": "needs_verification"
           },
+          "entry_source_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Entry Source Ids",
+            "type": "array"
+          },
           "id": {
             "title": "Id",
             "type": "string"
@@ -2262,6 +2477,13 @@
               "$ref": "#/components/schemas/ProcessStageTemplate"
             },
             "title": "Process Stages",
+            "type": "array"
+          },
+          "questions": {
+            "items": {
+              "$ref": "#/components/schemas/Question"
+            },
+            "title": "Questions",
             "type": "array"
           },
           "requirements": {
@@ -2284,6 +2506,13 @@
             },
             "title": "Supported Profile",
             "type": "object"
+          },
+          "unverified_conditions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Unverified Conditions",
+            "type": "array"
           },
           "version": {
             "title": "Version",
@@ -2333,6 +2562,18 @@
       "Source": {
         "additionalProperties": false,
         "properties": {
+          "attempted_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attempted At"
+          },
           "authority": {
             "title": "Authority",
             "type": "string"
@@ -2349,9 +2590,42 @@
             ],
             "title": "Checked At"
           },
+          "evidence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence"
+          },
           "id": {
             "title": "Id",
             "type": "string"
+          },
+          "locator": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Locator"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
           },
           "review_after": {
             "anyOf": [
@@ -2492,6 +2766,12 @@
           "accommodation_type": {
             "anyOf": [
               {
+                "enum": [
+                  "hotel",
+                  "host",
+                  "rental",
+                  "other"
+                ],
                 "type": "string"
               },
               {
@@ -2550,6 +2830,12 @@
           "funding_type": {
             "anyOf": [
               {
+                "enum": [
+                  "self",
+                  "sponsor",
+                  "mixed",
+                  "other"
+                ],
                 "type": "string"
               },
               {
@@ -2621,7 +2907,7 @@
     }
   },
   "info": {
-    "description": "Локальное демо на вымышленных документах. Работают health и аккаунты/сессии (пакеты 1/11); остальные маршруты документируют контракт и отвечают 503 после входа до реализации. Frontend использует один origin и credentials=include.",
+    "description": "Локальное демо на вымышленных документах. Работают health, аккаунты/сессии, реестр 12 направлений и профиль/сравнения (пакеты 1/11/2/3); остальные маршруты документируют контракт и отвечают 503 после входа до реализации. Frontend использует один origin и credentials=include.",
     "title": "VisaPilot API",
     "version": "0.1.0"
   },
@@ -5588,7 +5874,7 @@
     },
     "/api/v1/comparisons": {
       "post": {
-        "description": "Контракт пакета 3. Реализация отсутствует: сейчас возвращает 503 module_not_ready. Указанный успешный ответ — целевой интерфейс.",
+        "description": "Применить проверенные правила 12 направлений к текущему профилю и поездке. Это не проверка документов и не вероятность визы.",
         "operationId": "compare_api_v1_comparisons_post",
         "parameters": [
           {
@@ -5729,13 +6015,12 @@
         "tags": [
           "profile"
         ],
-        "x-implementation": "pending",
+        "x-implementation": "implemented",
         "x-package": 3
       }
     },
     "/api/v1/destinations": {
       "get": {
-        "description": "Контракт пакета 2. Реализация отсутствует: сейчас возвращает 503 module_not_ready. Указанный успешный ответ — целевой интерфейс.",
         "operationId": "destinations_api_v1_destinations_get",
         "responses": {
           "200": {
@@ -5843,7 +6128,7 @@
         "tags": [
           "rules"
         ],
-        "x-implementation": "pending",
+        "x-implementation": "implemented",
         "x-package": 2
       }
     },
@@ -7218,8 +7503,7 @@
     },
     "/api/v1/profile": {
       "get": {
-        "description": "Контракт пакета 3. Реализация отсутствует: сейчас возвращает 503 module_not_ready. Указанный успешный ответ — целевой интерфейс.",
-        "operationId": "profile_api_v1_profile_get",
+        "operationId": "get_profile_api_v1_profile_get",
         "responses": {
           "200": {
             "content": {
@@ -7327,16 +7611,16 @@
             "SessionCookie": []
           }
         ],
-        "summary": "Profile",
+        "summary": "Get Profile",
         "tags": [
           "profile"
         ],
-        "x-implementation": "pending",
+        "x-implementation": "implemented",
         "x-package": 3
       },
       "put": {
-        "description": "Контракт пакета 3. Реализация отсутствует: сейчас возвращает 503 module_not_ready. Указанный успешный ответ — целевой интерфейс.",
-        "operationId": "update_profile_api_v1_profile_put",
+        "description": "Полностью заменить поля профиля; пропуски становятся null. Изменение увеличивает revision и помечает зависимые результаты устаревшими.",
+        "operationId": "put_profile_api_v1_profile_put",
         "parameters": [
           {
             "in": "header",
@@ -7472,17 +7756,16 @@
             "SessionCookie": []
           }
         ],
-        "summary": "Update Profile",
+        "summary": "Put Profile",
         "tags": [
           "profile"
         ],
-        "x-implementation": "pending",
+        "x-implementation": "implemented",
         "x-package": 3
       }
     },
     "/api/v1/scenarios/{scenario_id}": {
       "get": {
-        "description": "Контракт пакета 2. Реализация отсутствует: сейчас возвращает 503 module_not_ready. Указанный успешный ответ — целевой интерфейс.",
         "operationId": "scenario_api_v1_scenarios__scenario_id__get",
         "parameters": [
           {
@@ -7601,7 +7884,7 @@
         "tags": [
           "rules"
         ],
-        "x-implementation": "pending",
+        "x-implementation": "implemented",
         "x-package": 2
       }
     }
