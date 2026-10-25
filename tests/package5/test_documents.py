@@ -204,6 +204,14 @@ def test_real_ocr_when_available(filename):
     kind = "bank_statement" if "bank_statement" in filename else "insurance" if "insurance" in filename else "passport"
     result = extract((SAMPLES / filename).read_bytes(), kind)
     values = {field.key: field.value for field in result.fields}
-    assert values.get("given_name", values.get("holder_name")) in {"ALEXEI", "ALEXEI SAMPLEOV"}
+    name_key = "given_name" if kind == "passport" else "holder_name"
+    if values.get(name_key) not in {"ALEXEI", "ALEXEI SAMPLEOV"}:
+        # Actual OCR can misread I as !. Never substitute the expected fixture name.
+        assert values[name_key] is None
+        assert any(issue.code == "field_invalid" and issue.field_key == name_key for issue in result.quality_issues)
+        assert result.extraction_state == "needs_input"
+    assert values[{"passport": "expires_on", "bank_statement": "statement_on", "insurance": "ends_on"}[kind]] == {
+        "passport": "2032-04-15", "bank_statement": "2026-11-20", "insurance": "2027-01-31",
+    }[kind]
     assert result.fields and all(field.source_kind == "ocr" for field in result.fields)
     assert all(not field.user_confirmed for field in result.fields)

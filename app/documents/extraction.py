@@ -9,19 +9,32 @@ import tempfile
 import threading
 from pathlib import Path
 
-from .types import DOCUMENT_TYPES, MAX_FILE_BYTES, DocumentType, ExtractionResult, QualityIssue
+from .types import (DOCUMENT_TYPES, MAX_FILE_BYTES, MAX_PAGES, MAX_PIXELS,
+                    DocumentType, ExtractionResult, QualityIssue)
 
 _DOCUMENT_LOCK = threading.Lock()
 
 
 class DocumentExtractor:
-    def __init__(self, *, timeout_seconds: float = 60, temporary_root: Path | None = None):
+    def __init__(self, *, timeout_seconds: float = 60, temporary_root: Path | None = None,
+                 max_pages: int = MAX_PAGES, max_pixels: int = MAX_PIXELS,
+                 tessdata_dir: Path | None = None):
         if not 0 < timeout_seconds <= 60:
             raise ValueError("Document timeout must be in (0, 60].")
         self.timeout_seconds = timeout_seconds
         self.temporary_root = temporary_root
+        self.tessdata_dir = tessdata_dir.resolve() if tessdata_dir else None
+        self.limits = {"max_pages": min(max_pages, MAX_PAGES), "max_pixels": min(max_pixels, MAX_PIXELS)}
+        if min(self.limits.values()) < 1:
+            raise ValueError("Document limits must be positive.")
 
     async def extract(self, content: bytes, document_type: DocumentType) -> ExtractionResult:
+        return await self._run(content, document_type, "extract")
+
+    async def inspect(self, content: bytes, document_type: DocumentType) -> ExtractionResult:
+        return await self._run(content, document_type, "inspect")
+
+    async def _run(self, content: bytes, document_type: DocumentType, mode: str) -> ExtractionResult:
         if document_type not in DOCUMENT_TYPES:
             raise ValueError("Unsupported document_type.")
         if len(content) > MAX_FILE_BYTES:
@@ -31,12 +44,16 @@ class DocumentExtractor:
         try:
             with tempfile.TemporaryDirectory(prefix="visapilot-extract-", dir=self.temporary_root) as directory:
                 # Input bytes travel via stdin; no user filenames or commands are accepted.
+                environment = dict(os.environ)
+                if self.tessdata_dir is not None:
+                    environment["TESSDATA_PREFIX"] = str(self.tessdata_dir)
                 process = await asyncio.create_subprocess_exec(
                     sys.executable, "-m", "app.documents.worker", document_type,
-                    directory, str(self.timeout_seconds),
+                    directory, str(self.timeout_seconds), mode, json.dumps(self.limits),
                     stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE,
                     stderr=asyncio.subprocess.DEVNULL, start_new_session=True,
                     cwd=Path(__file__).resolve().parents[2],
+                    env=environment,
                 )
                 try:
                     stdout, _ = await asyncio.wait_for(process.communicate(content), self.timeout_seconds)

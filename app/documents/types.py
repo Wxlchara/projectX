@@ -41,7 +41,7 @@ class QualityIssue:
 @dataclass(frozen=True)
 class ExtractionResult:
     document_type: DocumentType
-    extraction_state: Literal["extracted", "needs_input", "failed"]
+    extraction_state: Literal["uploaded", "extracted", "needs_input", "failed"]
     fields: tuple[CandidateField, ...] = ()
     quality_issues: tuple[QualityIssue, ...] = ()
     mime_type: str | None = None

@@ -40,6 +40,13 @@ def normalize(key: str, value: str) -> str | None:
     value = " ".join(value.split())
     if not value or len(value) > 300:
         return None
+    if key in {"given_name", "surname", "holder_name"}:
+        # Do not silently turn OCR punctuation/digits into letters in a name.
+        if not any(char.isalpha() for char in value) or any(
+            not char.isalpha() and char not in " -.'’" for char in value
+        ):
+            return None
+        return value
     if key in DATES:
         try:
             if re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):

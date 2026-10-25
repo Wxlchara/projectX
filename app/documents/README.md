@@ -1,153 +1,200 @@
-# Пакет 5: подготовительный шаг до каркаса Матвея
+# Пакет 5: личный архив, извлечение и AI-адаптер
 
-Ветка `codex/vanya-05-documents`. На старте в репозитории были только docs и
-`.gitignore`, рабочее дерево было чистым. Пакеты 1 и 11 отсутствуют.
-Общие модели, DDL, зависимости в корне, `app/main.py` и `docs/contracts.md`
-не изменены. Этот шаг **не является готовым HTTP-архивом**.
+Пакет подключён к общим моделям/SQLite пакета 1 и реальным сессиям/CSRF
+пакета 11. Все семь HTTP-операций архива реализованы. Ветка:
+`codex/vanya-05-documents`. Общие схемы, DDL, app/main.py, pyproject.toml,
+requirements.lock и корневой openapi.json не изменены.
 
-## Что работает
+## Установка и запуск
 
-`DocumentExtractor.extract(content: bytes, document_type)` — асинхронный вызов
-локального обработчика. Имя файла, ожидаемый ответ и manifest образцов не
-передаются обработчику. PDF-текст читается pypdf; страницы без текста
-растеризуются pypdfium2 под mutex и передаются Tesseract `rus+eng`.
-PNG/JPEG декодируются Pillow с учётом EXIF-поворота.
-
-Лимиты: 10 MiB, 10 PDF-страниц, 20 млн пикселей, 100 тыс. символов,
-8 MiB распакованного потока PDF-страницы, 60 секунд на процесс. Один процесс
-извлечения одновременно для всех экземпляров; конкурирующий запрос получает
-`processing_busy`. Тайм-аут/отмена убивают группу процессов, включая OCR;
-родитель удаляет временный каталог. Временная копия не заменяет оригинал
-архива: постоянное хранение будет подключено после пакета 1.
-
-Результат — внутренний `ExtractionResult`, не публичная Pydantic-модель.
-Он содержит кандидаты полей, качество, фактический MIME и число страниц.
-Полного OCR-текста и файловых путей в результате нет. У PDF-текста
-`confidence=null`; OCR сохраняет минимальную уверенность слов строки в [0,1].
-Все кандидаты имеют `user_confirmed=false`, `confirmed_revision=null`.
-`extracted` означает только извлечение, а не подтверждение или готовность.
-Недостающие/неоднозначные/невалидные поля и низкая уверенность дают
-`needs_input`. Повреждённый/зашифрованный/неподдерживаемый файл — `failed`.
-
-Парсер консервативный: строки с известными английскими/русскими метками,
-даты ISO или DD.MM.YYYY, десятичные суммы без группировки/экспоненты.
-Нераспознанный свободный бланк остаётся для ручного ввода. MRZ, произвольные
-банковские таблицы, классификация типа и сравнение с визовыми правилами здесь
-не реализованы. Код валюты из трёх букв — лишь извлечённый кандидат;
-распознавание ISO-кода и сопоставимость валют проверяет пакет 6.
-
-## Запуск проверки
-
-Из корня репозитория с Python 3.12:
+Из корня проекта, Python 3.12, один Uvicorn worker:
 
 ```bash
 python3.12 -m venv .venv
-.venv/bin/python -m pip install -r app/documents/requirements.txt -r app/ai/requirements.txt -r tests/package5/requirements.txt -r demo/requirements.txt
-.venv/bin/python -m pytest tests/package5 -q
+.venv/bin/python -m pip install -r requirements.lock -r app/documents/requirements.txt -r app/ai/requirements.txt
+.venv/bin/python -m uvicorn app.documents.application:create_app --factory --host 127.0.0.1 --port 8000 --workers 1
 ```
 
-Для реального OCR нужен отдельно установленный Tesseract и оба языка:
-
-```bash
-tesseract --list-langs
-```
-
-Тесты реального OCR пропускаются с явной причиной, если `rus`/`eng` отсутствуют.
-TSV-фикстура проверяет только разбор уверенности и очистку временного файла.
-На этом компьютере реальные OCR-тесты пока не пройдены.
-
-Фактический результат этого шага (25 октября 2026): `40 passed, 5 skipped`.
-Проверены девять настоящих текстовых PDF, отличия прочитанного содержимого,
-ошибочные/зашифрованные/слишком большие файлы, лимиты страниц/пикселей,
-отсутствие OCR, конфликт/низкая уверенность полей, тайм-аут, отмена и занятость.
-AI-транспорт проверен только фиктивным локальным executable, включая JSON
-Schema, запрет API-env, login mismatch, ошибку CLI и очистку после отмены.
-`compileall` прошёл. Все 10 PDF отрендерены Poppler и визуально просмотрены
-в контактном листе: текст/пометки SAMPLE читаются, наложений/обрезки нет.
-Пять пропусков — именно реальный Tesseract на PNG, JPEG и image-only PDF.
-Живой AI, HTTP/БД/ownership и сквозная готовность пакета 5 не заявляются.
-
-Пример вызова (в HTTP-обработчике нужно `await`, не `asyncio.run`):
+Это factory поверх общего create_app, с `feature_routers={5: router}`.
+Адреса: `/api/v1/documents`, `/docs`, `/openapi.json`. Базовый
+`app.main:app` по-прежнему запускает каркас Матвея с pending-пакетом 5.
+Для общего запуска Матвей подключает наш router в своём composition root:
 
 ```python
-import asyncio
-from pathlib import Path
-from app.documents import DocumentExtractor
-
-result = asyncio.run(DocumentExtractor().extract(
-    Path("demo/documents/good_passport.pdf").read_bytes(), "passport"
-))
-print(result.to_dict())
+from app.documents.router import router as documents_router
+app = create_app(feature_routers={5: documents_router})
 ```
 
-## Передача Матвею: предлагаемые уточнения общего контракта
+Если его приложение добавит сервис пакета 4, передать CaseRebuilder в
+DocumentArchive либо объявить `application.state.case_rebuilder` при
+подключении роутера. В нашем factory доступен параметр rebuilder.
 
-Изменения ниже **предложены, не согласованы и не внесены** в общие схемы.
-Текущий HTTP-контракт достаточен для начала подключения, новых endpoints нет.
+Нужны Tesseract и языки rus/eng; OCR и AI не запускаются при старте.
+Системная установка — по [официальной инструкции](https://tesseract-ocr.github.io/tessdoc/Installation).
+Можно оставить модели внутри игнорируемого local_data, не меняя системные
+языковые файлы. Пример после установки самого Tesseract:
 
-1. Зафиксировать реестр `Field.key` и формат коллекции `fields`:
+```bash
+mkdir -p local_data/tessdata
+curl --fail --location --output local_data/tessdata/rus.traineddata https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/4.1.0/rus.traineddata
+curl --fail --location --output local_data/tessdata/eng.traineddata https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/4.1.0/eng.traineddata
+TESSDATA_PREFIX="$PWD/local_data/tessdata" tesseract --list-langs
+```
 
-   | Тип | Предлагаемые ключи |
-   | --- | --- |
-   | passport | given_name, surname, birth_date, passport_kind, issued_on, expires_on |
-   | bank_statement | holder_name, statement_on, balance, currency |
-   | insurance | holder_name, starts_on, ends_on, territory, coverage_amount, currency |
+При наличии обоих файлов сервис автоматически использует
+`settings.data_dir/tessdata`; явный TESSDATA_PREFIX имеет приоритет.
+Установка/скачивание никогда не выполняются приложением автоматически.
+На этой машине проверен Tesseract 5.5.3, rus из tessdata_fast 4.1.0,
+eng из Homebrew. В Git модели не входят. Для воспроизводимой установки на
+другом ноутбуке можно использовать обе модели из одного указанного тега.
 
-   Все значения кандидатов — строка/null; деньги — строка Decimal.
-   Даты паспорта здесь названы `issued_on/expires_on`; поля профиля имеют
-   `passport_issued_on/passport_expires_on`. Нужен явный mapping в общем слое.
-   Источник страницы — 1-based. Ненайденные поля отсутствуют среди кандидатов
-   и указаны в quality_issues; не приписывать им несуществующий источник.
+## HTTP и владение
 
-2. Уточнить `PATCH /documents/{id}/fields`: например, `expected_facts_revision`
-   и список `{key, value, user_confirmed}`. При несовпадении ревизии — 409.
-   Рекомендуемая семантика: изменение значения/повторное извлечение увеличивает
-   facts_revision и сбрасывает подтверждение изменённых полей; подтверждение
-   записывает confirmed_revision текущего значения. Неизменённые поля могут
-   сохранить подтверждение только с явной привязкой к текущей ревизии.
-   Эту политику и транзакцию реализуем после фиксации схем Матвеем.
+Все пути после `/api/v1`, user_id берётся только из сессии.
 
-3. Адаптер результата: CandidateField -> общий Field; QualityIssue -> Finding
-   с `origin=technical`, `severity=verify`, document_ids, field_paths,
-   `rule_ref=null`, `resolved=false` и next_action. Необходим mapping кодов в
-   HTTP: file_too_large -> 413; unsupported_type -> 415;
-   invalid_file/invalid_pdf/invalid_image/encrypted_pdf/page_limit/
-   image_too_large/text_limit -> 422; processing_busy -> 409.
-   При занятости не перезаписывать существующие поля/состояние документа.
-   OCR-unavailable/тайм-аут -> needs_input с ручным вводом, не pass.
+| Метод и путь | Результат |
+| --- | --- |
+| POST /documents | multipart file + document_type -> 201 Document, uploaded |
+| GET /documents | Items[Document], только свой архив |
+| GET /documents/{id} | Общая модель Document, без путей/raw_text |
+| GET /documents/{id}/file | Свой оригинал, attachment/octet-stream, no-store/nosniff |
+| POST /documents/{id}/extract | Извлечение и новая facts_revision |
+| PATCH /documents/{id}/fields | Исправление/подтверждение по expected_facts_revision |
+| DELETE /documents/{id} | 204, оригинал и поля удалены, связи сняты |
 
-4. Общий storage gateway должен проверять owner_id при каждом чтении,
-   скачивании, обновлении и удалении; `get_confirmed_facts(owner_id, ids)`
-   возвращает только текущие подтверждения с document_id/facts_revision.
-   Чужой ID — 404; owner_id приходит из `require_user`, не из тела запроса.
-   `extract_document(id)` следует вызывать с доверенным owner-контекстом после
-   проверки доступа; по одному ID без контекста его не экспортируем.
+На чтении require_user, на изменении require_csrf. Чужой/отсутствующий ID —
+одинаковый 404; без сессии — 401; без CSRF — 403. На upload сессия проверяется
+до чтения тела. Multipart допускает один файл и одно поле типа; лишний
+owner_id отвергается. Фактический размер файла ограничивается в callback
+парсера **до записи** лишних байтов в spool. Общий multipart-body ограничен
+размером файла + 64 KiB; незавершённые/ошибочные части закрываются.
 
-5. Нужны атомарные операции сохранения ревизии и отмены зависимостей.
-   Правка/повторное извлечение/удаление должны сделать checks/letters stale
-   и вызвать `rebuild_case` для **всех** связанных дел. Извлечение не держит
-   SQL-транзакцию; перед записью результата повторно проверить ревизию и
-   существование документа. Удалённый во время OCR файл не воссоздавать.
-   Удаление также снимает case_documents и удаляет оригинал/поля.
+Файл проверяется по содержимому, не по расширению/заявленному MIME. PDF,
+PNG, JPEG, <=10 MiB, <=10 страниц, <=20 млн пикселей; меньшие лимиты Settings
+учитываются. Повреждённый/зашифрованный/слишком большой файл не попадает в
+архив. Оригинал хранится в закрытом uploads с UUID-именем и mode 0600;
+каждая загрузка создаёт новый ID, даже при одинаковом sha256. Исходное имя
+только отображается и очищается от каталогов/управляющих символов.
+Скачивание не следует symlink и сверяет размер/sha256. Публичной статики нет.
 
-6. Ограничение размера нужно применять уже при потоковом multipart-чтении;
-   проверка после `read()` не заменяет ограничение upload endpoint. Оригинал
-   хранится в закрытом `local_data/uploads` с серверным UUID-именем. Файл
-   валидируется до принятия в архив; входной MIME/расширение недостоверны.
+## Извлечение и ручное подтверждение
 
-HTTP, авторизация, повторное открытие после перезапуска, подтверждение полей,
-SQLite и отмена готовности **не проверены**: для них нужен каркас 1/11/4.
-Не создаём альтернативные таблицы/сессии или условно успешные заглушки.
+Сначала pypdf; страницы без текста -> pypdfium2 -> Pillow -> Tesseract TSV.
+PDFium полностью закрывается внутри mutex в отдельном worker-процессе.
+Одна обработка одновременно, дедлайн <=60 секунд, вход <=10 MiB, текст
+<=100 тыс. символов, поток страницы <=8 MiB. Тайм-аут/отмена завершают группу
+процессов; родитель удаляет временный каталог. HTTP event loop не блокируется;
+SQLite-транзакции не удерживаются во время OCR/AI.
 
-## Файлы шага
+Парсер консервативный: строки с английскими/русскими метками, ISO/DD.MM.YYYY,
+десятичные суммы. Неподдержанный бланк остаётся для ручного ввода. MRZ,
+произвольные банковские таблицы и оценка правил страны здесь не реализованы.
+Результат зависит от прочитанных байтов, не от имени файла/manifest образцов.
 
-- `app/documents/{__init__,types,fields,readers,worker,extraction}.py`, этот README,
-  `app/documents/requirements.txt`.
-- `app/ai/{__init__,provider}.py`, `app/ai/README.md`, `app/ai/requirements.txt`.
-- `tests/package5/{test_documents,test_ai}.py`, requirements.txt.
-- `demo/generate_documents.py`, `demo/README.md`, requirements.txt;
-  `demo/documents/{good,bad,corrected}_{passport,bank_statement,insurance}.{pdf,png}`,
-  scan_passport.pdf, photo_passport.jpg, manifest.json.
+| Тип | Field.key |
+| --- | --- |
+| passport | given_name, surname, birth_date, passport_kind, issued_on, expires_on |
+| bank_statement | holder_name, statement_on, balance, currency |
+| insurance | holder_name, starts_on, ends_on, territory, coverage_amount, currency |
 
-Источники реализации: [pypdf](https://pypdf.readthedocs.io/en/stable/user/extract-text.html),
-[pypdfium2: потокобезопасность](https://pypdfium2.readthedocs.io/en/stable/python_api.html).
+Даты ISO, суммы строки Decimal, неизвестное null. Валюта из трёх букв —
+кандидат, а не доказательство признанного ISO-кода/сопоставимости валют.
+Паспортный issued_on/expires_on нужно сопоставлять с passport_issued_on/
+passport_expires_on профиля. source_page — 1-based; PDF confidence=null;
+OCR confidence — минимальная уверенность слов строки [0,1].
+
+Извлечение всегда сбрасывает подтверждения; quality_findings используют
+общий Finding с origin=technical, severity=verify. Низкая уверенность,
+пропуск/конфликт/невалидное поле -> needs_input. При реальном OCR образцов
+встречается ALEXE! вместо ALEXEI: значение имени остаётся null с замечанием,
+а не заменяется ожидаемым именем из фикстуры.
+
+PATCH принимает общий DocumentFieldsPatch. Повторяющиеся/неподдержанные ключи,
+нестроковые значения, невалидные даты/суммы и подтверждение null -> 422.
+Строки нормализуются; изменённое значение получает source_kind=manual,
+confidence/source_page=null. Подтверждение неизменённого значения сохраняет
+его исходное происхождение. Любой непустой успешный PATCH увеличивает ревизию;
+пустой PATCH — no-op. Подтверждения неизменённых значений переносятся на новую
+ревизию; изменённое поле подтверждается только явным user_confirmed=true.
+Неверный expected_facts_revision -> 409 без изменения данных.
+
+`get_confirmed_facts(owner_id, document_ids)` реализует общий протокол:
+только поля с user_confirmed=true и confirmed_revision=facts_revision,
+с документом/типом/ревизией. Документ без подтверждений имеет fields=[], а не
+ложный pass. Чужой ID запрещён и на внутреннем интерфейсе.
+
+## Удаление, конкуренция и зависимые дела
+
+После правки/подтверждения/извлечения/удаления для всех связанных дел в одной
+транзакции: revision++, stale=1, причина, projection_json=NULL; checks,
+letters и routes становятся stale. При удалении связи снимаются FK.
+Чужие документы и дела не затрагиваются. После commit вызывается переданный
+CaseRebuilder; без пакета 4 результат остаётся явно stale без старой готовности.
+Реальная проекция чек-листа/прогресса — зона пакета 4, её успешность не заявляется.
+
+Перед сохранением результата долгого OCR повторно проверяются owner,
+существование документа и facts_revision. Параллельная правка -> 409,
+удаление -> 404; старый OCR ничего не воссоздаёт/не перезаписывает.
+Busy -> 409 без изменения документа; timeout -> needs_input с ручным вводом.
+
+При удалении оригинал временно перемещается в закрытый tmp: rollback
+восстанавливает его, commit удаляет физически. При неудаче записи metadata
+новый файл удаляется. Внезапное завершение ОС между файловой операцией и
+commit не является атомарной транзакцией SQLite+FS; отдельного crash-recovery
+журнала в этом прототипе нет. Обычный перезапуск/доступ после login проверены.
+
+## Проверки
+
+```bash
+TESSDATA_PREFIX="$PWD/local_data/tessdata" .venv/bin/python -m pytest -q
+.venv/bin/python tests/integration/package5_http_smoke.py
+.venv/bin/python -m pip check
+.venv/bin/python -m app.common.export_openapi --check
+```
+
+Real OCR tests требуют rus+eng, иначе явно skip. TSV/AI/process fixtures не
+выдаются за реальный OCR/AI. HTTP smoke поднимает настоящий Uvicorn только
+на loopback, два настоящих аккаунта, свою временную БД/архив, проверяет
+извлечение/подтверждение/чужой доступ, перезапускает процесс, проверяет
+сохранность сессии и файла, logout/login и физическое удаление. Проектный
+local_data не сбрасывается. Проверки инвалидации двух дел используют явно
+обозначенные DB-фикстуры ещё отсутствующих пакетов 4/6/7/8.
+
+Фактический итог этого шага: **121 passed, 0 skipped** при указанном
+TESSDATA_PREFIX; одно существующее предупреждение Starlette о httpx TestClient.
+Отдельный HTTP smoke — status=ok, включая перезапуск процесса.
+`pip check` — No broken requirements; общий OpenAPI snapshot is current.
+Изменения общих файлов для прохождения этих проверок не потребовались.
+
+## Передача Матвею и общие контракты
+
+Новые общие поля, DDL и endpoints не нужны. Используются его Document,
+Field, DocumentFieldsPatch, ConfirmedDocumentFacts, AIResult и протоколы.
+AI-адаптер теперь возвращает общий AIResult.output; занятость —
+status=unavailable/reason=ai_busy. Дублирующей публичной модели нет.
+
+Матвею нужно подключить router в общем запуске и добавить PDF/OCR/jsonschema
+зависимости из файлов пакета в его общий манифест/lock. Пакету 4 — передать
+CaseRebuilder и использовать get_confirmed_facts; до подключения пересчёта
+старые проекции очищены, ложная готовность не возвращается.
+Живая AI-проба через вход Матвея остаётся на его ноутбуке. Платного fallback,
+покупки кредитов и передачи credentials нет. Состояние пробы — app/ai/README.md.
+
+## Файлы этого рабочего шага
+
+Новые:
+- app/documents/service.py — архив, файлы, ревизии, подтверждение и инвалидация;
+- app/documents/router.py — все HTTP-операции и ограниченный multipart;
+- app/documents/application.py — запускаемый factory без изменения app/main.py;
+- tests/package5/test_archive.py — интеграционные проверки 1+11+5;
+- tests/integration/package5_http_smoke.py — настоящий сервер с перезапуском.
+
+Изменены:
+- app/documents/{types,readers,worker,extraction,fields}.py — проверка до
+  сохранения, лимиты, локальный tessdata, TSV без системных configs, валидация имён;
+- app/ai/provider.py — общий AIResult/AIProvider;
+- tests/package5/{test_ai,test_documents}.py — общий контракт и реальный OCR;
+- app/documents/README.md, app/ai/README.md, demo/README.md — актуальное состояние.
+
+SAMPLE-файлы не перегенерированы. Чужих незакоммиченных изменений на старте
+не было. Изменения этого шага не закоммичены и не опубликованы автоматически.

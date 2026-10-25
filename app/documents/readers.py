@@ -32,7 +32,8 @@ def ocr_lines(image: Image.Image, page: int, workdir: Path,
     try:
         # TSV provides actual word confidence; PDF text never receives OCR confidence.
         result = subprocess.run(
-            ["tesseract", str(source), "stdout", "-l", "rus+eng", "--psm", "6", "tsv"],
+            ["tesseract", str(source), "stdout", "-l", "rus+eng", "--psm", "6",
+             "-c", "tessedit_create_tsv=1"],
             stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, check=False,
             timeout=remaining, shell=False,
         )
@@ -87,11 +88,54 @@ def render_page(data: bytes, index: int) -> Image.Image:
                 page.close()
 
 
-def read_file(data: bytes, workdir: Path, deadline: float) -> tuple[str, int, list[SourceLine], list[QualityIssue]]:
+def inspect_file(data: bytes, *, max_pages: int = MAX_PAGES,
+                 max_pixels: int = MAX_PIXELS) -> tuple[str, int]:
+    """Validate actual bytes before archiving, without running OCR."""
     if not data:
         raise ExtractionError("invalid_file", "Файл пуст.")
     if len(data) > MAX_FILE_BYTES:
         raise ExtractionError("file_too_large", "Максимальный размер файла — 10 MiB.")
+    if data.startswith(b"%PDF-"):
+        try:
+            reader = PdfReader(io.BytesIO(data))
+            if reader.is_encrypted:
+                raise ExtractionError("encrypted_pdf", "Зашифрованный PDF не поддерживается.")
+            count = len(reader.pages)
+            if not 1 <= count <= max_pages:
+                raise ExtractionError("page_limit", f"Максимум страниц PDF: {max_pages}.")
+            for page in reader.pages:
+                contents = page.get_contents()
+                if contents is not None and len(contents.get_data()) > 8 * 1024 * 1024:
+                    raise ExtractionError("text_limit", "Содержимое PDF-страницы превышает лимит.")
+            return "application/pdf", count
+        except ExtractionError:
+            raise
+        except Exception as exc:
+            raise ExtractionError("invalid_pdf", "Не удалось прочитать PDF.") from exc
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", Image.DecompressionBombWarning)
+            with Image.open(io.BytesIO(data)) as image:
+                if image.format not in {"PNG", "JPEG"} or getattr(image, "n_frames", 1) != 1:
+                    raise ExtractionError("unsupported_type", "Поддерживаются PDF, JPEG и PNG без анимации.")
+                if image.width * image.height > max_pixels:
+                    raise ExtractionError("image_too_large", "Изображение превышает лимит пикселей.")
+                mime = "image/png" if image.format == "PNG" else "image/jpeg"
+                image.load()
+                return mime, 1
+    except ExtractionError:
+        raise
+    except (Image.DecompressionBombError, Image.DecompressionBombWarning) as exc:
+        raise ExtractionError("image_too_large", "Изображение превышает лимит пикселей.") from exc
+    except UnidentifiedImageError as exc:
+        raise ExtractionError("unsupported_type", "Фактический формат файла не поддерживается.") from exc
+    except Exception as exc:
+        raise ExtractionError("invalid_image", "Изображение повреждено.") from exc
+
+
+def read_file(data: bytes, workdir: Path, deadline: float, *, max_pages: int = MAX_PAGES,
+              max_pixels: int = MAX_PIXELS) -> tuple[str, int, list[SourceLine], list[QualityIssue]]:
+    inspect_file(data, max_pages=max_pages, max_pixels=max_pixels)
     lines: list[SourceLine] = []
     issues: list[QualityIssue] = []
     if data.startswith(b"%PDF-"):
