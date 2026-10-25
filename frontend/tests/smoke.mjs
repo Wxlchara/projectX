@@ -25,16 +25,41 @@ globalThis.fetch = async () => { throw new Error('No backend in smoke test'); };
 await import('../app.js');
 await new Promise(resolve => setTimeout(resolve, 0));
 
+function assertBalancedMarkup(html, route) {
+  const stack = [];
+  const voidTags = new Set(['area','base','br','col','embed','hr','img','input','link','meta','param','source','track','wbr']);
+  for (const match of html.matchAll(/<\/?([a-z][\w:-]*)\b[^>]*>/gi)) {
+    const tag = match[1].toLowerCase();
+    if (voidTags.has(tag)) continue;
+    if (match[0].startsWith('</')) assert.equal(stack.pop(), tag, `${route}: unbalanced </${tag}>`);
+    else stack.push(tag);
+  }
+  assert.deepEqual(stack, [], `${route}: unclosed elements`);
+}
+
+function assertInternalLinks(html, route) {
+  const valid = /^\/(?:$|about$|auth$|destinations(?:\/[^/]+)?$|compare$|profile$|cases(?:\/new|\/[^/]+(?:\/(?:edit|checklist|route|letter|timeline))?)?$|archive(?:\/[^/]+)?$)/;
+  for (const match of html.matchAll(/href="#(\/[^"?]*)(?:\?[^\"]*)?"/g)) {
+    assert.match(match[1], valid, `${route}: unknown internal route ${match[1]}`);
+  }
+}
+
 async function visit(hash, text) {
   location.hash = hash;
   await callbacks.get('hashchange')();
   assert.ok(app.innerHTML.includes(text), `${hash} should contain ${text}`);
   assert.ok(app.innerHTML.includes('Visa<span>Mate</span>'), 'brand should be VisaMate');
   assert.ok(!app.innerHTML.includes('VisaPilot'), 'old brand must not appear');
+  assertBalancedMarkup(app.innerHTML, hash);
+  assertInternalLinks(app.innerHTML, hash);
 }
 
 assert.ok(app.innerHTML.includes('Шенген: Любой'), 'search should be on the home screen');
 assert.ok(app.innerHTML.includes('country-icon'), 'country card icons should be present');
+assert.equal((app.innerHTML.match(/class="country-card"/g) || []).length, 6, 'home should show a short country preview');
+assert.ok(app.innerHTML.includes('Все результаты'), 'home preview should link to the full directory');
+assertBalancedMarkup(app.innerHTML, '#/');
+assertInternalLinks(app.innerHTML, '#/');
 await visit('#/destinations', 'Поиск по странам');
 filters['schengen-filter'].value = 'yes';
 callbacks.get('change')({ target: { id: 'schengen-filter' } });

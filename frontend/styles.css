@@ -32,3 +32,47 @@ dialog{border:0;padding:0;color:var(--ink)}dialog::backdrop{background:rgba(15,3
 @media(max-width:760px){.logout-button{font-size:11px}}
 .case-edit-link{display:flex;justify-content:flex-end;margin:0 0 18px}.case-edit-link .text-link{display:inline-flex;align-items:center;gap:6px;color:var(--blue);font-size:13px;font-weight:700}.case-edit-link svg{width:16px;height:16px}.case-danger{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-top:20px;padding:24px}.case-danger strong{font-size:17px}.case-danger p{margin:5px 0 0;color:var(--muted);font-size:13px}@media(max-width:760px){.case-danger{flex-direction:column;align-items:stretch}.case-danger .button{width:100%}}
 .attached-document{display:flex;align-items:center;gap:10px}.attached-document .attached-row{flex:1;min-width:0}.detach-button{border:0;background:transparent;color:var(--muted);font-size:12px;font-weight:700;cursor:pointer}.detach-button:hover{color:#b14444}.document-danger{display:flex;justify-content:flex-end;margin:-20px 0 16px}
+
+/* Layout QA: keep every card inside the page gutter and let long labels wrap. */
+.destination-panel,.surface-card,.workspace-main{min-width:0;max-width:100%}
+.country-card-top>div,.detail-title>div,.case-list-top>div,.attached-document{min-width:0}
+.country-card h3,.detail-title h1,.case-list-top h2,.page-head h1,.next-step h2{overflow-wrap:anywhere}
+.country-type,.country-description,.small-muted,.attached-row{overflow-wrap:anywhere}
+.badge{max-width:100%;white-space:normal;text-align:center}
+.attached-document .attached-row{min-width:0}
+@media(max-width:900px){
+  .site-header{height:64px}
+  .nav-inner{gap:12px}
+  .main-nav{position:absolute;top:64px;left:0;right:0;display:none;flex-direction:column;align-items:stretch;gap:0;margin-left:0;padding:12px 24px;background:#fff;border-top:1px solid var(--line);box-shadow:0 15px 22px rgba(20,45,75,.09);z-index:20}
+  .main-nav.open{display:flex}
+  .main-nav a{padding:13px 6px}
+  .menu-toggle{display:grid}
+  .nav-right{margin-left:auto}
+}
+@media(max-width:760px){
+  .destination-panel{width:100%;margin-left:0;padding:22px}
+  .country-card-top{align-items:flex-start;gap:12px}
+  .country-card .country-icon{width:42px;height:42px}
+  .country-card .country-icon svg{width:23px;height:23px}
+  .case-list-top,.case-heading{flex-wrap:wrap}
+  .case-list-top .badge{margin-left:63px}
+  .case-list-actions{flex-wrap:wrap}
+  .case-list-actions .button{flex:1 1 100%;white-space:normal;text-align:center}
+  .detail-title{align-items:flex-start;gap:12px}
+  .detail-title h1{font-size:27px}
+  .country-icon.large{width:58px;height:58px;border-radius:15px}
+  .country-icon.large svg{width:30px;height:30px}
+}
+@media(max-width:390px){
+  .container{width:calc(100% - 32px)}
+  .destination-panel,.detail-card,.form-card,.inner-card{padding:18px}
+  .button{max-width:100%;white-space:normal;text-align:center}
+  .form-actions .button,.detail-actions .button,.hero-actions .button{width:100%}
+}
+@media(max-width:980px){
+  .workspace-layout{display:block}
+  .workspace-side{position:static;display:flex;gap:5px;overflow-x:auto;margin-bottom:18px;padding:8px;border-radius:13px}
+  .workspace-side .side-label,.workspace-side .side-help{display:none}
+  .side-link{white-space:nowrap;padding:10px}
+  .workspace-columns,.case-overview-grid{grid-template-columns:1fr}
+}
